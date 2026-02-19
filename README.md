@@ -1,6 +1,6 @@
 # 🏥 Healthcare Management System
 
-A comprehensive full-stack healthcare platform that connects patients and doctors, featuring appointment booking, AI-powered health assistance, ML-based insurance cost prediction, and streamlined healthcare management. Built with Django and powered by Google's Gemini AI. Currently deployed temporarily on Render 🚀
+A comprehensive full-stack healthcare platform that connects patients and doctors, featuring appointment booking, AI-powered health assistance, ML-based insurance cost prediction, and streamlined healthcare management. Built with Django and powered by Google's Gemini AI. Currently deployed temporarily on Render 
 
 ![Django](https://img.shields.io/badge/Django-5.2.6-green)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
