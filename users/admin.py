@@ -23,7 +23,11 @@ class PatientAdmin(admin.ModelAdmin):
     phone_number.short_description = 'Phone'
 
 @admin.register(Doctor)
-class DoctorAdmin(admin.ModelAdmin):
-    list_display = ('user', 'specialization', 'license_number', 'experience_years', 'consultation_fee')
+class ProviderAdmin(admin.ModelAdmin):
+    list_display = ('provider_name', 'specialization', 'license_number', 'experience_years', 'consultation_fee')
     list_filter = ('specialization',)
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'specialization')
+
+    @admin.display(description='Provider')
+    def provider_name(self, obj):
+        return obj.user.get_full_name() or obj.user.username

@@ -1,5 +1,10 @@
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
+from datetime import date, time
+
+from appointments.models import Appointment
+from users.models import Doctor, Patient
+from .services import PATIENT_TOOLS, STAFF_TOOLS, _execute
 from .models import Conversation, Message
 import json
 
@@ -29,8 +34,7 @@ class ChatbotTests(TestCase):
         """Test that guests can use chatbot"""
         response = self.client.get('/chatbot/')
         self.assertEqual(response.status_code, 200)
-        # Should show guest warning
-        self.assertContains(response, 'Guest Mode')
+        self.assertContains(response, 'Guest chat')
         print("✅ Test 2 passed: Guest can access chatbot")
     
     def test_logged_in_user_sees_history(self):

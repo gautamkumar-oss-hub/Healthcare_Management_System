@@ -4,174 +4,120 @@
 {% block title %}AI Health Assistant - Healthcare Management System{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'css/chat.css' %}" rel="stylesheet">
+<link href="{% static 'css/chat.css' %}?v=2" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4 chat-container">
+<div class="container py-4 chat-container">
     <div class="row justify-content-center">
         <div class="col-xl-10 col-lg-11">
-            <!-- Guest Mode Warning (if not logged in) -->
             {% if not user.is_authenticated %}
-            <div class="alert alert-info d-flex align-items-center mb-3 shadow-sm" style="border-radius: 15px;">
-                <i class="fas fa-info-circle fa-2x me-3"></i>
+            <div class="alert alert-info d-flex align-items-center mb-3 shadow-sm chat-access-note">
+                <i class="fas fa-info-circle fa-lg me-3" aria-hidden="true"></i>
                 <div>
-                    <strong>Guest Mode:</strong> You're using the chatbot as a guest. 
-                    <a href="{% url 'users:register_patient' %}" class="alert-link fw-bold">Register</a> or 
-                    <a href="{% url 'users:login' %}" class="alert-link fw-bold">Login</a> to save your conversation history!
+                    <strong>Guest chat:</strong> General health information is available. Account records and appointment tools require sign-in.
+                    <a href="{% url 'users:register_patient' %}" class="alert-link fw-bold">Register</a> or
+                    <a href="{% url 'users:login' %}" class="alert-link fw-bold">sign in</a> to save your conversation.
                 </div>
             </div>
+            {% elif user.user_type == 'patient' or user.user_type == 'staff' %}
+            <div class="alert alert-light border d-flex align-items-center gap-3 mb-3 chat-access-note">
+                <i class="fas fa-lock text-primary" aria-hidden="true"></i>
+                <span>
+                    {% if user.user_type == 'patient' %}
+                    Patient tools are limited to your profile and appointments.
+                    {% else %}
+                    Staff tools are limited to your provider profile and assigned appointments.
+                    {% endif %}
+                </span>
+            </div>
             {% endif %}
-            
-            <div class="card chat-card shadow-custom border-0">
-                <!-- Chat Header -->
-                <div class="chat-header">
-                    <h4>
-                        <i class="fas fa-robot robot-icon"></i>
-                        AI Health Assistant
-                    </h4>
-                    <small>
-                        <i class="fas fa-shield-alt me-1"></i>
-                        Powered by Google Gemini AI | Available 24/7
-                    </small>
-                </div>
-                
-                <!-- Chat Messages Container -->
-                <div class="card-body p-0">
-                    <div id="chatMessages" class="chat-messages">
-                        <!-- Welcome Message -->
-                        <div class="welcome-message">
-                            <h5>
-                                <i class="fas fa-hand-sparkles me-2"></i>
-                                Hello {% if user.is_authenticated %}{{ user.first_name|default:user.username }}{% else %}there{% endif %}! 👋
-                            </h5>
-                            <p class="mb-2">
-                                I'm your AI Health Assistant. I can help you with:
-                            </p>
-                            <ul class="mb-2" style="line-height: 1.8;">
-                                <li>✓ General health information and tips</li>
-                                <li>✓ Understanding medical terms</li>
-                                <li>✓ Symptom information (not a diagnosis)</li>
-                                <li>✓ Healthy lifestyle recommendations</li>
-                            </ul>
-                            <p class="mb-0 small">
-                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                <strong>Remember:</strong> Always consult with healthcare professionals for medical advice
-                            </p>
-                        </div>
-                        
-                        <!-- Load Previous Messages (only for logged-in users) -->
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="message {% if message.is_from_user %}user-message{% else %}ai-message{% endif %}">
-                                    <div class="message-wrapper">
-                                        <div class="message-sender">
-                                            {% if message.is_from_user %}
-                                                <i class="fas fa-user-circle"></i> You
-                                            {% else %}
-                                                <i class="fas fa-robot"></i> AI Assistant
-                                            {% endif %}
-                                        </div>
-                                        <div class="message-content">
-                                            <div class="message-text">{{ message.content|linebreaks }}</div>
-                                        </div>
-                                        <div class="message-time">
-                                            <i class="far fa-clock me-1"></i>
-                                            {{ message.created_at|date:"M d, Y H:i" }}
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
+
+            <section class="card chat-card shadow-custom border-0" aria-label="Healthcare assistant chat">
+                <header class="chat-header">
+                    <div>
+                        <h1><i class="fas fa-robot robot-icon" aria-hidden="true"></i> AI Health Assistant</h1>
+                        <p class="chat-subtitle mb-0">
+                            General health guidance{% if user.is_authenticated %} and account tools based on your role{% else %}; guest chat does not access account records{% endif %}
+                        </p>
                     </div>
-                    
-                    <!-- Typing Indicator -->
-                    <div id="typingIndicator" class="typing-indicator" style="display: none;">
-                        <div class="message ai-message">
+                    <span class="chat-powered-by"><i class="fas fa-shield-alt me-1" aria-hidden="true"></i>Gemini</span>
+                </header>
+
+                <div class="card-body p-0">
+                    <div id="chatMessages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" data-endpoint="{% url 'chatbot:send_message' %}">
+                        <div class="welcome-message">
+                            <h2>Hello {% if user.is_authenticated %}{{ user.first_name|default:user.username }}{% else %}there{% endif %}</h2>
+                            <p>Ask general health questions, learn medical terms, or get help with healthy habits. I cannot diagnose or prescribe.</p>
+                            {% if user.is_authenticated and user.user_type == 'patient' %}
+                            <p class="mb-0 small">You can also ask about your own profile, appointments, and available providers.</p>
+                            {% elif user.is_authenticated and user.user_type == 'staff' %}
+                            <p class="mb-0 small">You can also review and manage appointments assigned to your provider profile.</p>
+                            {% endif %}
+                            <p class="mb-0 small mt-2"><strong>For emergencies, seek immediate medical care.</strong></p>
+                        </div>
+
+                        {% for message in messages %}
+                        <article class="message {% if message.is_from_user %}user-message{% else %}ai-message{% endif %}">
                             <div class="message-wrapper">
                                 <div class="message-sender">
-                                    <i class="fas fa-robot"></i> AI Assistant
+                                    {% if message.is_from_user %}<i class="fas fa-user-circle" aria-hidden="true"></i> You{% else %}<i class="fas fa-robot" aria-hidden="true"></i> Assistant{% endif %}
                                 </div>
-                                <div class="message-content">
-                                    <div class="typing-dots">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
+                                <div class="message-content"><div class="message-text">{{ message.content|linebreaksbr }}</div></div>
+                                <time class="message-time" datetime="{{ message.created_at|date:'c' }}">{{ message.created_at|date:'M d, Y H:i' }}</time>
+                            </div>
+                        </article>
+                        {% endfor %}
+                        <div id="typingIndicator" class="typing-indicator" hidden aria-live="polite">
+                            <div class="message ai-message">
+                                <div class="message-wrapper">
+                                    <div class="message-sender"><i class="fas fa-robot" aria-hidden="true"></i> Assistant</div>
+                                    <div class="message-content" aria-label="Assistant is responding">
+                                        <div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Chat Input -->
-                <div class="chat-footer">
-                    <form id="chatForm">
+
+                <footer class="chat-footer">
+                    <form id="chatForm" data-send-label="Send" data-wait-label="Sending...">
                         {% csrf_token %}
-                        <div class="d-flex gap-2">
-                            <input type="text" 
-                                   id="messageInput" 
-                                   class="form-control" 
-                                   placeholder="Ask me about health topics, symptoms, or medications..." 
-                                   required
-                                   autocomplete="off">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-2"></i>
-                                Send
+                        <div class="chat-input-row">
+                            <label class="visually-hidden" for="messageInput">Your message</label>
+                            <input type="text" id="messageInput" class="form-control" maxlength="1000" placeholder="{% if user.is_authenticated and user.user_type == 'patient' %}Ask about health or your appointments...{% elif user.is_authenticated and user.user_type == 'staff' %}Ask about health or assigned appointments...{% else %}Ask a general health question...{% endif %}" required autocomplete="off">
+                            <button type="submit" class="btn btn-primary" id="sendButton">
+                                <i class="fas fa-paper-plane" aria-hidden="true"></i><span>Send</span>
                             </button>
                         </div>
-                        <div class="mt-2">
-                            <small class="text-muted">
-                                <i class="fas fa-lightbulb me-1"></i>
-                                Try asking: "What are the symptoms of flu?" or "Tips for better sleep"
-                            </small>
+                        <div class="chat-help-row">
+                            <small class="text-muted">Do not use this assistant for emergencies or diagnosis.</small>
+                            <small id="chatStatus" class="text-muted" role="status" aria-live="polite">1000 characters max</small>
                         </div>
                     </form>
-                </div>
-            </div>
-            
-            <!-- Quick Action Suggestions -->
-            <div class="row mt-4 g-2">
-                <div class="col-md-3 col-6">
-                    <button class="btn btn-outline-primary w-100 quick-question" data-question="What is diabetes?">
-                        <i class="fas fa-question-circle me-2"></i>
-                        What is diabetes?
-                    </button>
-                </div>
-                <div class="col-md-3 col-6">
-                    <button class="btn btn-outline-primary w-100 quick-question" data-question="How to lower blood pressure?">
-                        <i class="fas fa-heart me-2"></i>
-                        Lower blood pressure
-                    </button>
-                </div>
-                <div class="col-md-3 col-6">
-                    <button class="btn btn-outline-primary w-100 quick-question" data-question="Healthy diet tips">
-                        <i class="fas fa-utensils me-2"></i>
-                        Healthy diet tips
-                    </button>
-                </div>
-                <div class="col-md-3 col-6">
-                    <button class="btn btn-outline-primary w-100 quick-question" data-question="How to reduce stress?">
-                        <i class="fas fa-smile me-2"></i>
-                        Reduce stress
-                    </button>
-                </div>
-            </div>
+                </footer>
+            </section>
+
+            <nav class="chat-suggestions mt-3" aria-label="Suggested questions">
+                {% if user.is_authenticated and user.user_type == 'patient' %}
+                <button class="btn btn-outline-primary quick-question" data-question="Show my appointments"><i class="fas fa-calendar-check me-2" aria-hidden="true"></i>My appointments</button>
+                <button class="btn btn-outline-primary quick-question" data-question="Find a provider for an appointment"><i class="fas fa-user-check me-2" aria-hidden="true"></i>Find a provider</button>
+                {% elif user.is_authenticated and user.user_type == 'staff' %}
+                <button class="btn btn-outline-primary quick-question" data-question="List my appointments"><i class="fas fa-calendar-check me-2" aria-hidden="true"></i>My appointments</button>
+                <button class="btn btn-outline-primary quick-question" data-question="Show my appointment counts by status"><i class="fas fa-chart-bar me-2" aria-hidden="true"></i>Appointment counts</button>
+                {% else %}
+                <button class="btn btn-outline-primary quick-question" data-question="What is diabetes?"><i class="fas fa-question-circle me-2" aria-hidden="true"></i>What is diabetes?</button>
+                <button class="btn btn-outline-primary quick-question" data-question="How can I lower blood pressure?"><i class="fas fa-heart me-2" aria-hidden="true"></i>Lower blood pressure</button>
+                <button class="btn btn-outline-primary quick-question" data-question="Share healthy diet tips"><i class="fas fa-utensils me-2" aria-hidden="true"></i>Healthy diet tips</button>
+                <button class="btn btn-outline-primary quick-question" data-question="How can I reduce stress?"><i class="fas fa-smile me-2" aria-hidden="true"></i>Reduce stress</button>
+                {% endif %}
+            </nav>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/chat.js' %}"></script>
-<script>
-    // Quick question buttons
-    document.querySelectorAll('.quick-question').forEach(button => {
-        button.addEventListener('click', function() {
-            const question = this.getAttribute('data-question');
-            document.getElementById('messageInput').value = question;
-            document.getElementById('messageInput').focus();
-        });
-    });
-</script>
+<script src="{% static 'js/chat.js' %}?v=2" defer></script>
 {% endblock %}
