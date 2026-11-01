@@ -3,7 +3,7 @@ from django.shortcuts import render
 def home(request):
     """
     Public home page - accessible to everyone
-    Shows features, chatbot, and insurance predictor
+    Shows the platform features and chatbot.
     """
     context = {
         'page': 'home',

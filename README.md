@@ -1,13 +1,14 @@
 # 🏥 Healthcare Management System
 
-A comprehensive full-stack healthcare platform that connects patients and doctors, featuring appointment booking, AI-powered health assistance, ML-based insurance cost prediction, and streamlined healthcare management. Built with Django and powered by Google's Gemini AI. Currently deployed temporarily on Render 
+A Django healthcare platform for patient and staff accounts, provider appointments, and a Gemini powered health assistant.
+
+
 
 ![Django](https://img.shields.io/badge/Django-5.2.6-green)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![Machine Learning](https://img.shields.io/badge/ML-Insurance_Prediction-orange)
 
 ## 📸 Screenshots
 
@@ -30,10 +31,8 @@ A comprehensive full-stack healthcare platform that connects patients and doctor
 
 | Feature | Description | Access |
 |---------|-------------|--------|
-| 📅 **Book Appointments** | Schedule consultations with qualified doctors instantly | Login Required |
+| 📅 **Book Appointments** | Schedule consultations with qualified staff instantly | Login Required |
 | 🤖 **AI Health Assistant** | Get instant health advice powered by Gemini AI | Public Access ✅ |
-| 💰 **Insurance Calculator** | Predict insurance costs using ML algorithms | Public Access ✅ |
-| 📋 **Health Records** | Track appointments and prediction history | Login Required |
 
 ---
 
@@ -60,38 +59,6 @@ A comprehensive full-stack healthcare platform that connects patients and doctor
 - Conversation history (for logged-in users)
 
 **⚠️ Important Note:** Always consult healthcare professionals for medical advice
-
----
-
-### 💰 Insurance Cost Predictor - ML Form
-![Insurance Predictor](https://github.com/gautam-oss/Healthcare_Management_System/blob/main/static/image/Screenshot%202025-10-31%20191756.png)
-
-*AI-powered insurance cost estimation using Linear Regression:*
-
-**📋 Input Parameters:**
-1. **Age** (18-100 years) - Impact: ~$257 per year
-2. **Sex** (Male/Female) - Impact: ~$131 difference
-3. **BMI** (Body Mass Index) - Impact: ~$339 per BMI point
-4. **Number of Children** (0-10) - Impact: ~$475 per child
-5. **Smoker Status** (Yes/No) - Impact: ~$23,848 increase ⚠️
-6. **Region** (NE/NW/SE/SW) - Impact: Regional variation
-
-**🎯 Model Benefits:**
-- ⚡ Instant predictions using trained ML model
-- 📊 Feature importance visualization
-- ⚠️ Risk factor identification
-- 💡 Personalized health recommendations
-- 📈 Prediction history tracking (registered users)
-- 📉 Cost statistics and trends
-
-**🔬 Technical Details:**
-- **Algorithm**: Linear Regression
-- **Training Data**: Industry-standard insurance datasets
-- **Accuracy**: Real-time predictions with <1s latency
-- **Transparency**: Full feature importance breakdown
-
----
-
 ## 🎨 Design Highlights
 
 ### Color Scheme
@@ -113,14 +80,14 @@ A comprehensive full-stack healthcare platform that connects patients and doctor
 ## ✨ Features
 
 ### 👥 **User Management**
-- **Dual User Types**: Separate registration and dashboards for patients and doctors
+- **Dual User Types**: Separate registration and dashboards for patients and staff
 - **Secure Authentication**: Django's built-in authentication with custom user model
 - **Profile Management**: Comprehensive profiles with medical information
 
 ### 📅 **Appointment System**
-- **Easy Booking**: Patients can book appointments with available doctors
+- **Easy Booking**: Patients can book appointments with available providers
 - **Real-time Status Updates**: Track appointment status (Pending, Confirmed, Completed, Cancelled)
-- **Doctor Management**: Doctors can manage and update appointment statuses
+- **Staff Management**: Staff can manage and update appointment statuses
 - **Appointment History**: Complete history with timestamps and notes
 
 ### 🤖 **AI-Powered Health Assistant**
@@ -129,14 +96,6 @@ A comprehensive full-stack healthcare platform that connects patients and doctor
 - **Symptom Guidance**: AI assistance for understanding symptoms (not a replacement for medical advice)
 - **Conversation History**: Persistent chat history for continued conversations
 
-### 💰 **ML-Based Insurance Cost Predictor**
-- **Linear Regression Model**: Trained machine learning model for accurate cost predictions
-- **Multiple Factors Analysis**: Considers age, sex, BMI, children, smoking status, and region
-- **Risk Assessment**: Identifies key risk factors and provides personalized recommendations
-- **Feature Importance Visualization**: Understand which factors most impact insurance costs
-- **Prediction History**: Track and compare multiple predictions over time
-- **Cost Statistics**: View average, minimum, and maximum predicted costs
-- **Interactive Dashboard**: Beautiful UI with charts and progress bars
 
 ### 🎨 **Modern UI/UX**
 - **Responsive Design**: Bootstrap 5 for mobile-first design
@@ -150,7 +109,6 @@ A comprehensive full-stack healthcare platform that connects patients and doctor
 - **Django 5.2.6**: Web framework
 - **PostgreSQL**: Primary database
 - **Google Gemini AI**: Conversational AI service
-- **Scikit-learn**: Machine learning model (Linear Regression)
 - **Django REST Framework**: API development (ready for extension)
 
 ### **Frontend**
@@ -158,11 +116,6 @@ A comprehensive full-stack healthcare platform that connects patients and doctor
 - **Bootstrap 5**: Responsive UI framework
 - **JavaScript (ES6+)**: Interactive functionality
 - **Font Awesome**: Icon library
-
-### **Machine Learning**
-- **Linear Regression**: Insurance cost prediction model
-- **NumPy**: Numerical computations
-- **Pickle**: Model serialization
 
 ### **DevOps & Deployment**
 - **Docker & Docker Compose**: Containerization
@@ -186,7 +139,7 @@ Healthcare_Management_System/
 │   ├── wsgi.py                       # WSGI configuration
 │   └── asgi.py                       # ASGI configuration
 ├── users/                            # User management app
-│   ├── models.py                     # User, Patient, Doctor models
+│   ├── models.py                     # User, Patient, staff provider models
 │   ├── views.py                      # Authentication views
 │   ├── forms.py                      # Registration forms
 │   ├── admin.py                      # Admin configuration
@@ -201,14 +154,7 @@ Healthcare_Management_System/
 │   ├── views.py                      # Chat API views
 │   ├── services.py                   # Gemini AI integration
 │   └── templates/chatbot/            # Chat interface
-├── insurance/                        # Insurance prediction app
-│   ├── models.py                     # InsurancePrediction model
-│   ├── views.py                      # Prediction views
-│   ├── forms.py                      # Prediction forms
-│   ├── ml_model.py                   # Linear Regression model
-│   ├── trained_model.pkl             # Serialized ML model
 │   ├── admin.py                      # Admin configuration
-│   └── templates/insurance/          # Insurance templates
 ├── static/                           # Static files
 │   ├── css/
 │   └── js/
@@ -219,7 +165,6 @@ Healthcare_Management_System/
 │   ├── homepage-hero.png
 │   ├── features-overview.png
 │   ├── ai-chatbot.png
-│   ├── insurance-predictor.png
 │   └── ...
 ├── requirements.txt                  # Python dependencies
 ├── manage.py                         # Django management script
@@ -364,37 +309,30 @@ For production deployment, ensure:
 1. **Register**: Create a patient account with personal and medical information
 2. **Login**: Access your personalized dashboard
 3. **Book Appointments**: 
-   - Browse available doctors
+   - Browse available providers
    - Select preferred date and time
    - Provide reason for visit
 4. **AI Health Assistant**: 
    - Ask health-related questions
    - Get symptom guidance
    - Receive medication information
-5. **Insurance Cost Prediction**:
-   - Enter personal health information (age, BMI, smoking status, etc.)
-   - Get instant ML-powered cost predictions
-   - View risk factors and recommendations
-   - Track prediction history with statistics
-6. **Manage Appointments**: View and track appointment status
+5. **Manage Appointments**: View and track appointment status
 
-### For Doctors
+### For Staff
 
-1. **Register**: Create a doctor account with professional credentials
-2. **Login**: Access doctor dashboard with patient management tools
+1. **Register**: Create a staff account with professional credentials
+2. **Login**: Access the staff dashboard with patient management tools
 3. **Manage Appointments**:
    - View incoming appointment requests
    - Confirm or reschedule appointments
    - Add clinical notes
    - Update appointment status
 4. **AI Assistant**: Use AI for patient education and information
-5. **Insurance Insights**: Access insurance prediction tool for patient cost estimates
 
 ### Admin Features
 
-- User management (patients and doctors)
+- User management (patients and staff)
 - Appointment oversight and management
-- Insurance prediction history and analytics
 - System configuration and monitoring
 - AI conversation logs and analytics
 
@@ -404,23 +342,17 @@ For production deployment, ensure:
 - `POST /users/login/` - User login
 - `POST /users/logout/` - User logout
 - `POST /users/register/patient/` - Patient registration
-- `POST /users/register/doctor/` - Doctor registration
+- `POST /users/register/staff/` - Staff registration
 
 ### Appointment Endpoints
 - `GET /appointments/my/` - List user appointments
 - `POST /appointments/book/` - Create new appointment
-- `PUT /appointments/update/{id}/` - Update appointment (doctors only)
+- `PUT /appointments/update/{id}/` - Update appointment (staff only)
 
 ### Chatbot Endpoints
 - `GET /chatbot/` - Chat interface
 - `POST /chatbot/send/` - Send message to AI
 
-### Insurance Endpoints
-- `GET /insurance/predict/` - Insurance prediction form
-- `POST /insurance/predict/` - Submit prediction data
-- `GET /insurance/result/<id>/` - View prediction result
-- `GET /insurance/history/` - View prediction history
-- `GET /insurance/about/` - Model information and feature importance
 
 ## 🧪 Testing
 
@@ -433,38 +365,11 @@ python manage.py test
 python manage.py test users
 python manage.py test appointments
 python manage.py test chatbot
-python manage.py test insurance
 
 # Run with coverage
 coverage run --source='.' manage.py test
 coverage report
 ```
-
-## 🤖 Machine Learning Model Details
-
-### Insurance Cost Predictor
-
-**Model Type**: Linear Regression
-
-**Features Analyzed**:
-1. **Smoking Status** (Highest Impact): Smokers pay significantly higher premiums (~$23,848 increase)
-2. **BMI**: Higher BMI correlates with increased costs (~$339 per BMI point)
-3. **Age**: Older individuals typically have higher insurance costs (~$257 per year)
-4. **Number of Children**: More dependents increase coverage costs (~$475 per child)
-5. **Region**: Geographic location affects pricing (varies by region)
-6. **Sex**: Minor impact on insurance costs (~$131 difference)
-
-**Model Performance**:
-- Pre-trained coefficients based on industry-standard insurance datasets
-- Accurate predictions for annual health insurance costs
-- Feature importance visualization for transparency
-- Risk factor identification and personalized recommendations
-
-**Technical Implementation**:
-- Pickle serialization for model persistence
-- NumPy for efficient numerical computations
-- Real-time prediction with minimal latency
-- Extensible architecture for model updates
 
 ## 🔒 Security Features
 
@@ -474,7 +379,6 @@ coverage report
 - **Secure Password Hashing**: Django's PBKDF2 algorithm
 - **Session Security**: Secure session management
 - **Input Validation**: Form validation and sanitization
-- **User Data Privacy**: Prediction history tied to authenticated users
 
 ## 📈 Performance Optimization
 
@@ -482,7 +386,6 @@ coverage report
 - **Static File Compression**: Gzip compression for static files
 - **Caching**: Redis caching for frequently accessed data (ready for implementation)
 - **Database Connection Pooling**: Persistent database connections
-- **ML Model Caching**: Pre-loaded model for instant predictions
 
 ## 🚀 Deployment Options
 
@@ -517,7 +420,6 @@ Before deploying to production:
 - [ ] Configure error tracking (Sentry recommended)
 - [ ] Set up CI/CD pipeline
 - [ ] Performance testing completed
-- [ ] ML model validation and testing
 
 ## 🤝 Contributing
 
@@ -535,7 +437,6 @@ We welcome contributions! Please follow these steps:
 - Write comprehensive tests
 - Update documentation
 - Use meaningful commit messages
-- Test ML model predictions thoroughly
 
 ## 🐛 Issue Reporting
 
@@ -560,10 +461,9 @@ For support and questions:
 ## 🗺️ Roadmap
 
 ### Completed Features ✅
-- [x] User authentication (Patient & Doctor)
+- [x] User authentication (Patient & staff provider)
 - [x] Appointment booking system
 - [x] AI Health Assistant (Gemini AI)
-- [x] Insurance Cost Prediction (ML)
 - [x] Responsive UI/UX
 - [x] Docker deployment
 - [x] Admin panel
@@ -581,13 +481,10 @@ For support and questions:
 - [ ] **SMS Notifications**: Twilio integration
 
 ### Future Enhancements 🔮
-- Enhanced ML models (Neural Networks, XGBoost)
-- Disease prediction using ML
 - Medication interaction checker
 - Wearable device integration (Fitbit, Apple Watch)
 - Telemedicine platform expansion
 - Healthcare data analytics and insights
-- Real-time insurance quote comparison
 - Voice assistant integration
 - Blockchain for medical records
 - Integration with pharmacy systems
@@ -627,8 +524,6 @@ SOFTWARE.
 - **Bootstrap Team**: For the responsive UI framework
 - **PostgreSQL**: For the robust database system
 - **Font Awesome**: For the beautiful icons
-- **Scikit-learn**: For machine learning capabilities
-- **NumPy**: For numerical computing support
 - **Open Source Community**: For countless libraries and tools
 
 ## 🌟 Star History
@@ -662,7 +557,6 @@ python manage.py runserver
 docker-compose up --build
 ```
 
-**🎉 You're ready to revolutionize healthcare management with AI and ML!**
 
 ---
 
@@ -692,4 +586,3 @@ docker-compose up --build
 <p align="center">
   <a href="#top">⬆️ Back to Top</a>
 </p>
-

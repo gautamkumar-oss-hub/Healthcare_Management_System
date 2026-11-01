@@ -15,7 +15,7 @@
                 </h1>
                 <p class="lead mb-4 opacity-90" style="color: #FDE68A;">
                     Experience next-generation healthcare with AI-powered assistance, 
-                    easy appointment booking, and smart insurance predictions.
+                    easy appointment booking, and staff-managed care.
                 </p>
                 <div class="d-flex gap-3 flex-wrap mb-4">
                     {% if user.is_authenticated %}
@@ -64,13 +64,13 @@
         
         <div class="row g-4">
             <!-- Feature 1: Book Appointments -->
-            <div class="col-lg-3 col-md-6 fade-in">
+            <div class="col-lg-4 col-md-6 fade-in">
                 <div class="feature-card text-center p-4 h-100">
                     <div class="feature-icon mb-3">
                         <i class="fas fa-calendar-plus fa-3x text-primary"></i>
                     </div>
                     <h5 class="mb-3">Book Appointments</h5>
-                    <p class="text-muted mb-3">Schedule consultations with qualified doctors instantly</p>
+                    <p class="text-muted mb-3">Schedule consultations with qualified providers instantly</p>
                     {% if user.is_authenticated and user.user_type == 'patient' %}
                         <a href="{% url 'appointments:book' %}" class="btn btn-outline-primary btn-sm">
                             Book Now <i class="fas fa-arrow-right ms-1"></i>
@@ -82,7 +82,7 @@
             </div>
             
             <!-- Feature 2: AI Chatbot -->
-            <div class="col-lg-3 col-md-6 fade-in">
+            <div class="col-lg-4 col-md-6 fade-in">
                 <div class="feature-card text-center p-4 h-100">
                     <div class="feature-icon mb-3">
                         <i class="fas fa-robot fa-3x text-success"></i>
@@ -98,31 +98,14 @@
                 </div>
             </div>
             
-            <!-- Feature 3: Insurance Predictor -->
-            <div class="col-lg-3 col-md-6 fade-in">
-                <div class="feature-card text-center p-4 h-100">
-                    <div class="feature-icon mb-3">
-                        <i class="fas fa-calculator fa-3x text-warning"></i>
-                    </div>
-                    <h5 class="mb-3">Insurance Calculator</h5>
-                    <p class="text-muted mb-3">Predict your insurance costs with ML</p>
-                    <a href="#insurance-demo" class="btn btn-outline-warning btn-sm">
-                        Calculate <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
-                    <div class="mt-2">
-                        <span class="badge bg-warning">Public Access</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Feature 4: Track Records -->
-            <div class="col-lg-3 col-md-6 fade-in">
+            <!-- Feature 3: Track Records -->
+            <div class="col-lg-4 col-md-6 fade-in">
                 <div class="feature-card text-center p-4 h-100">
                     <div class="feature-icon mb-3">
                         <i class="fas fa-clipboard-list fa-3x text-info"></i>
                     </div>
                     <h5 class="mb-3">Health Records</h5>
-                    <p class="text-muted mb-3">Track appointments and predictions</p>
+                    <p class="text-muted mb-3">Track your appointments</p>
                     {% if user.is_authenticated %}
                         <a href="{% url 'users:dashboard' %}" class="btn btn-outline-info btn-sm">
                             View Records <i class="fas fa-arrow-right ms-1"></i>
@@ -177,36 +160,6 @@
                 </div>
             </div>
             
-            <!-- Insurance Calculator Demo -->
-            <div class="col-lg-6" id="insurance-demo">
-                <div class="card shadow-lg border-0 h-100">
-                    <div class="card-header text-white border-0" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
-                        <h4 class="mb-0">
-                            <i class="fas fa-calculator me-2"></i>
-                            Insurance Cost Predictor
-                        </h4>
-                    </div>
-                    <div class="card-body p-4">
-                        <p class="text-muted mb-4">
-                            Get instant ML-powered insurance cost estimates based on your health profile.
-                        </p>
-                        <div class="demo-preview p-4 rounded" style="background: #f8f9fa; border: 2px dashed #dee2e6;">
-                            <div class="text-center">
-                                <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
-                                <p class="mb-3">Calculate your estimated insurance costs</p>
-                                <a href="{% url 'insurance:predict' %}" class="btn btn-warning btn-lg">
-                                    <i class="fas fa-magic me-2"></i>
-                                    Calculate Now
-                                </a>
-                            </div>
-                        </div>
-                        <div class="mt-3 small text-muted">
-                            <i class="fas fa-info-circle me-1"></i>
-                            AI model trained on real insurance data for accurate predictions
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -226,7 +179,7 @@
                         <span class="badge rounded-circle bg-primary" style="width: 60px; height: 60px; font-size: 24px; line-height: 60px;">1</span>
                     </div>
                     <h5 class="mb-3">Create Account</h5>
-                    <p class="text-muted">Sign up as a patient or doctor in seconds. It's completely free!</p>
+                    <p class="text-muted">Sign up as a patient or staff member in seconds. It's completely free!</p>
                 </div>
             </div>
             
@@ -236,7 +189,7 @@
                         <span class="badge rounded-circle bg-success" style="width: 60px; height: 60px; font-size: 24px; line-height: 60px;">2</span>
                     </div>
                     <h5 class="mb-3">Explore Features</h5>
-                    <p class="text-muted">Use AI chatbot, book appointments, and predict insurance costs.</p>
+                    <p class="text-muted">Use AI chat and book appointments with providers.</p>
                 </div>
             </div>
             
@@ -246,7 +199,7 @@
                         <span class="badge rounded-circle bg-warning" style="width: 60px; height: 60px; font-size: 24px; line-height: 60px;">3</span>
                     </div>
                     <h5 class="mb-3">Manage Health</h5>
-                    <p class="text-muted">Track your appointments, conversations, and health predictions.</p>
+                    <p class="text-muted">Track your appointments and conversations.</p>
                 </div>
             </div>
         </div>
@@ -268,7 +221,7 @@
                 <div class="stat-item">
                     <i class="fas fa-user-md fa-3x mb-3 opacity-75"></i>
                     <h2 class="display-4 fw-bold">50+</h2>
-                    <p class="lead">Qualified Doctors</p>
+                    <p class="lead">Qualified Providers</p>
                 </div>
             </div>
             <div class="col-md-3 fade-in">
@@ -309,9 +262,9 @@
                             <i class="fas fa-user-plus me-2"></i>
                             Register as Patient
                         </a>
-                        <a href="{% url 'users:register_doctor' %}" class="btn btn-success btn-lg px-5">
+                        <a href="{% url 'users:register_staff' %}" class="btn btn-success btn-lg px-5">
                             <i class="fas fa-user-md me-2"></i>
-                            Register as Doctor
+                            Register as Staff
                         </a>
                     </div>
                 {% endif %}

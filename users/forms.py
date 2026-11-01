@@ -42,8 +42,8 @@ class PatientRegistrationForm(UserCreationForm):
             )
         return user
 
-class DoctorRegistrationForm(UserCreationForm):
-    """Doctor registration form"""
+class StaffRegistrationForm(UserCreationForm):
+    """Staff registration form with a provider profile for appointment selection."""
     first_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': ' '}))
     last_name = forms.CharField(max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': ' '}))
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': ' '}))
@@ -67,7 +67,7 @@ class DoctorRegistrationForm(UserCreationForm):
     def save(self, commit=True):
         # ... (rest of the save method is unchanged)
         user = super().save(commit=False)
-        user.user_type = 'doctor'
+        user.user_type = 'staff'
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.email = self.cleaned_data['email']

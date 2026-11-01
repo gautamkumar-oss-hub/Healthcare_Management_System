@@ -11,7 +11,7 @@
                     <i class="fas fa-calendar-plus me-2"></i>
                     Book Your Appointment
                 </h2>
-                <p class="text-white-50">Schedule a consultation with our qualified doctors</p>
+                <p class="text-white-50">Schedule a consultation with our qualified providers</p>
             </div>
             
             <!-- Booking Form Card -->
@@ -26,11 +26,11 @@
                     <form method="post">
                         {% csrf_token %}
                         
-                        <!-- Doctor Selection -->
+                        <!-- Provider Selection -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">
                                 <i class="fas fa-user-md text-primary me-2"></i>
-                                Select Doctor
+                                Select Provider
                             </label>
                             {{ form.doctor }}
                             {% if form.doctor.errors %}
@@ -38,7 +38,7 @@
                             {% endif %}
                             <small class="text-muted d-block mt-1">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Choose a doctor based on your medical needs
+                                Choose a provider based on your medical needs
                             </small>
                         </div>
                         
@@ -90,7 +90,7 @@
                                 <ul class="mb-0 mt-2" style="list-style-position: inside;">
                                     <li>Please arrive 10 minutes before your scheduled time</li>
                                     <li>Bring any relevant medical records or test results</li>
-                                    <li>You will receive a confirmation once the doctor approves</li>
+                                    <li>You will receive a confirmation once staff approves</li>
                                 </ul>
                             </div>
                         </div>
@@ -115,7 +115,7 @@
                 <div class="col-md-4">
                     <div class="card border-0 shadow-sm h-100 text-center p-3" style="background: rgba(255, 255, 255, 0.95);">
                         <i class="fas fa-user-md fa-3x text-primary mb-3"></i>
-                        <h6>Qualified Doctors</h6>
+                        <h6>Qualified Providers</h6>
                         <p class="small text-muted mb-0">Expert healthcare professionals</p>
                     </div>
                 </div>

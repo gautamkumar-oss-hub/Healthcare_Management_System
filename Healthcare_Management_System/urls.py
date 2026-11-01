@@ -7,5 +7,4 @@ urlpatterns = [
     path('users/', include('users.urls')),             # User auth
     path('appointments/', include('appointments.urls')),# Appointments
     path('chatbot/', include('chatbot.urls')),         # Chatbot
-    path('insurance/', include('insurance.urls')),     # Insurance
 ]
