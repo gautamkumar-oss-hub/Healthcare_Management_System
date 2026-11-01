@@ -30,6 +30,10 @@ class Doctor(models.Model):
     license_number = models.CharField(max_length=50, unique=True)
     experience_years = models.PositiveIntegerField(default=0)
     consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    class Meta:
+        verbose_name = "provider"
+        verbose_name_plural = "providers"
     
     def __str__(self):
-        return f"Dr. {self.user.get_full_name() or self.user.username} - {self.specialization}"
+        return f"{self.user.get_full_name() or self.user.username} - {self.specialization}"

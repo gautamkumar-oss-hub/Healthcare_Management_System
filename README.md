@@ -95,6 +95,7 @@ A Django healthcare platform for patient and staff accounts, provider appointmen
 - **Health Information**: Get reliable medical information and explanations
 - **Symptom Guidance**: AI assistance for understanding symptoms (not a replacement for medical advice)
 - **Conversation History**: Persistent chat history for continued conversations
+- **Role-scoped tools**: Five patient tools and eight staff tools, authorized against the signed-in account on the server
 
 
 ### 🎨 **Modern UI/UX**
