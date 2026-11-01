@@ -4,11 +4,18 @@ from .models import User, Patient, Doctor
 
 # Customize User admin
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'user_type', 'is_staff')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'user_type', 'is_active', 'is_staff')
     list_filter = ('user_type', 'is_staff', 'is_superuser', 'is_active')
     fieldsets = UserAdmin.fieldsets + (
         ('Additional Info', {'fields': ('user_type', 'phone')}),
     )
+
+    @admin.action(description='Approve selected staff access requests')
+    def approve_staff_requests(self, request, queryset):
+        updated = queryset.filter(user_type='staff', is_active=False).update(is_active=True)
+        self.message_user(request, f'{updated} staff account(s) approved.')
+
+    actions = ('approve_staff_requests',)
 
 # Register the User model
 admin.site.register(User, CustomUserAdmin)

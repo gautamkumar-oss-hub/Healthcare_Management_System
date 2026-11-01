@@ -27,9 +27,11 @@ def register_staff(request):
         form = StaffRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            messages.success(request, 'Staff registration successful! Welcome {}!'.format(user.get_full_name()))
-            return redirect('users:dashboard')
+            messages.success(
+                request,
+                'Your staff access request has been submitted. A hospital administrator must approve your account before you can sign in.'
+            )
+            return redirect('users:login')
     else:
         form = StaffRegistrationForm()
     
@@ -48,8 +50,12 @@ def dashboard(request):
     if request.user.user_type == 'patient' and hasattr(request.user, 'patient'):
         context['profile'] = request.user.patient
         context['profile_type'] = 'patient'
-    elif request.user.user_type == 'staff' and hasattr(request.user, 'doctor'):
-        context['profile'] = request.user.doctor
+    elif request.user.user_type == 'staff':
         context['profile_type'] = 'staff'
+        if hasattr(request.user, 'doctor'):
+            context['profile'] = request.user.doctor
+            context['has_appointment_profile'] = True
+        else:
+            context['has_appointment_profile'] = False
     
     return render(request, 'users/dashboard.html', context)

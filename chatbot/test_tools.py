@@ -74,6 +74,21 @@ class ChatToolAuthorizationTests(TestCase):
         result = _execute("list_my_appointments", {}, AnonymousUser())
         self.assertIn("error", result)
 
+    def test_staff_without_appointment_profile_has_no_appointment_records(self):
+        staff_user = User.objects.create_user(username="general-staff", user_type="staff")
+        self.assertEqual(_execute("list_my_appointments", {}, staff_user), [])
+
+    def test_unsupported_role_cannot_call_any_tool(self):
+        unsupported_user = User.objects.create_user(username="unsupported", user_type="other")
+        result = _execute("list_providers", {}, unsupported_user)
+        self.assertIn("error", result)
+
+    def test_inactive_staff_is_not_available_for_booking(self):
+        self.other_staff_user.is_active = False
+        self.other_staff_user.save(update_fields=["is_active"])
+        result = _execute("list_providers", {}, self.patient_user)
+        self.assertEqual([item["id"] for item in result], [self.provider.pk])
+
     def test_boolean_is_not_accepted_as_appointment_id(self):
         result = _execute(
             "cancel_my_appointment",

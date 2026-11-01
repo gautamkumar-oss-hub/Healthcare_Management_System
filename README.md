@@ -321,14 +321,15 @@ For production deployment, ensure:
 
 ### For Staff
 
-1. **Register**: Create a staff account with professional credentials
-2. **Login**: Access the staff dashboard with patient management tools
-3. **Manage Appointments**:
+1. **Request Access**: Submit a staff account request; a hospital administrator must activate it before sign-in
+2. **Appointment Profile**: Staff who manage appointments need an appointment profile linked by the hospital
+3. **Login**: Access the staff dashboard after approval
+4. **Manage Appointments**:
    - View incoming appointment requests
    - Confirm or reschedule appointments
    - Add clinical notes
    - Update appointment status
-4. **AI Assistant**: Use AI for patient education and information
+5. **AI Assistant**: Use AI for patient education and information, with account tools scoped to the signed-in staff account
 
 ### Admin Features
 

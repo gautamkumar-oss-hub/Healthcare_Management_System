@@ -16,6 +16,8 @@ class AppointmentForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['doctor'].queryset = Doctor.objects.filter(user__user_type='staff')
+        self.fields['doctor'].queryset = Doctor.objects.filter(
+            user__user_type='staff', user__is_active=True
+        )
         self.fields['doctor'].label = "Provider"
         self.fields['doctor'].empty_label = "Select a provider"
