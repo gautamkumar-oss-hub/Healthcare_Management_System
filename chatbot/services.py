@@ -70,7 +70,7 @@ STAFF_TOOLS = [
             ["appointment_id", "notes"],
         ),
     },
-    {"name": "get_my_provider_profile", "description": "Get the authenticated staff member's provider profile.", "parameters": _schema()},
+    {"name": "get_my_provider_profile", "description": "Get the authenticated staff member's appointment profile.", "parameters": _schema()},
     {"name": "list_my_patients", "description": "List patients with appointments assigned to this staff provider.", "parameters": _schema()},
     {"name": "get_my_appointment_counts", "description": "Count assigned appointments by status.", "parameters": _schema()},
     {"name": "list_providers", "description": "List providers available for appointment selection.", "parameters": _schema()},
@@ -120,12 +120,12 @@ def _execute(name, args, user):
         return {"error": "Authentication is required for account tools."}
 
     role = user.user_type
+    if role not in {"patient", "staff"}:
+        return {"error": "This account role does not have chatbot tools."}
     patient = _related_profile(user, "patient", Patient) if role == "patient" else None
     provider = _related_profile(user, "doctor", Doctor) if role == "staff" else None
     if role == "patient" and patient is None:
         return {"error": "Patient profile unavailable."}
-    if role == "staff" and provider is None:
-        return {"error": "Staff provider profile unavailable."}
 
     if name == "get_my_profile" and role == "patient" and not args:
         patient_user = patient.user
@@ -138,9 +138,13 @@ def _execute(name, args, user):
             "emergency_contact": patient.emergency_contact,
         }
     if name == "get_my_provider_profile" and role == "staff" and not args:
+        if provider is None:
+            return {"error": "No appointment profile is linked to this staff account."}
         return _provider_data(provider)
     if name == "list_providers" and not args:
-        providers = Doctor.objects.select_related("user").filter(user__user_type="staff")
+        providers = Doctor.objects.select_related("user").filter(
+            user__user_type="staff", user__is_active=True
+        )
         return [_provider_data(item) for item in providers.order_by("user__last_name", "user__first_name")[:50]]
     if name == "list_my_appointments" and not args:
         appointments = Appointment.objects.select_related("doctor__user", "patient__user")
@@ -179,13 +183,14 @@ def _execute(name, args, user):
             return {"error": "Use a valid date and time."}
         if appointment_date < timezone.localdate():
             return {"error": "Appointments must be scheduled in the future."}
-        if appointment_date == timezone.localdate() and appointment_time <= timezone.localtime().time():
+        current_time = timezone.localtime().time().replace(tzinfo=None)
+        if appointment_date == timezone.localdate() and appointment_time <= current_time:
             return {"error": "Appointments must be scheduled in the future."}
 
         try:
             with transaction.atomic():
                 selected_provider = Doctor.objects.select_for_update().get(
-                    pk=args["provider_id"], user__user_type="staff"
+                    pk=args["provider_id"], user__user_type="staff", user__is_active=True
                 )
                 conflict = Appointment.objects.filter(
                     doctor=selected_provider,

@@ -39,14 +39,14 @@ def book_appointment(request):
             appointment.patient = request.user.patient
             
             # ✅ NEW: Validate appointment date is not in the past
-            if appointment.appointment_date < timezone.now().date():
+            if appointment.appointment_date < timezone.localdate():
                 messages.error(request, 'Cannot book appointments in the past. Please select a future date.')
                 return render(request, 'appointments/book.html', {'form': form})
             
             # ✅ NEW: Check if it's today and time has passed
-            if appointment.appointment_date == timezone.now().date():
-                current_time = timezone.now().time()
-                if appointment.appointment_time < current_time:
+            if appointment.appointment_date == timezone.localdate():
+                current_time = timezone.localtime().time().replace(tzinfo=None)
+                if appointment.appointment_time <= current_time:
                     messages.error(request, 'Cannot book appointments in the past. Please select a future time.')
                     return render(request, 'appointments/book.html', {'form': form})
             
@@ -54,7 +54,7 @@ def book_appointment(request):
             try:
                 with transaction.atomic():
                     provider = Doctor.objects.select_for_update().get(
-                        pk=appointment.doctor_id, user__user_type='staff'
+                        pk=appointment.doctor_id, user__user_type='staff', user__is_active=True
                     )
                     if check_appointment_conflict(
                         provider, appointment.appointment_date, appointment.appointment_time
@@ -121,7 +121,7 @@ def update_appointment(request, appointment_id):
     """Staff can update appointment status with validation."""
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
-    # Only staff accounts with provider profiles can update appointments.
+    # Only staff accounts linked to an appointment profile can update appointments.
     if request.user.user_type != 'staff' or not hasattr(request.user, 'doctor'):
         messages.error(request, 'Only staff can update appointments.')
         return redirect('appointments:my_appointments')

@@ -219,6 +219,24 @@ class UserRegistrationTests(TestCase):
             self.assertTrue(hasattr(user, 'doctor'))
             print("✅ Test 7 passed: Staff registration works")
 
+    def test_staff_without_appointment_profile_is_pending_approval(self):
+        response = self.client.post('/users/register/staff/', {
+            'username': 'generalstaff',
+            'email': 'generalstaff@test.com',
+            'first_name': 'General',
+            'last_name': 'Staff',
+            'phone': '1234567890',
+            'password1': 'ComplexPass123!',
+            'password2': 'ComplexPass123!',
+        })
+
+        self.assertRedirects(response, '/users/login/')
+        user = User.objects.get(username='generalstaff')
+        self.assertEqual(user.user_type, 'staff')
+        self.assertFalse(user.is_active)
+        self.assertFalse(hasattr(user, 'doctor'))
+        self.assertNotIn('_auth_user_id', self.client.session)
+
 
 class SecurityTests(TestCase):
     """Test security features"""

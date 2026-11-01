@@ -2,142 +2,352 @@
 {% block title %}Register {{ user_type }} - Healthcare Management System{% endblock %}
 
 {% block content %}
-<div class="container register-container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-7 col-md-8">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-header text-center bg-success text-white rounded-top-4">
-                    <h3 class="mb-1"><i class="fas fa-user-plus"></i> Register as {{ user_type }}</h3>
-                    <p class="mb-0 small">Create your account to get started</p>
-                </div>
-                <div class="card-body p-4">
-                    <form method="post" novalidate>
-                        {% csrf_token %}
+<main class="register-page container py-4 py-lg-5">
+    <div class="row justify-content-center align-items-stretch g-4">
+        <aside class="col-lg-4 col-xl-4">
+            <section class="register-intro h-100">
+                <span class="register-kicker">
+                    {% if user_type == 'Staff' %}STAFF ACCESS{% else %}PATIENT ACCESS{% endif %}
+                </span>
+                <h1>{% if user_type == 'Staff' %}Create your staff account{% else %}Your health account starts here{% endif %}</h1>
+                <p class="register-intro-copy">
+                    {% if user_type == 'Staff' %}
+                        Request hospital staff access. An administrator must approve your account before you can sign in. If you provide appointment services, add an optional appointment profile below.
+                    {% else %}
+                        Create an account to book appointments, keep track of your visits, and use your personal health assistant.
+                    {% endif %}
+                </p>
 
+                <div class="register-benefits">
+                    <div class="register-benefit">
+                        <span class="register-benefit-icon"><i class="fas fa-shield-alt" aria-hidden="true"></i></span>
+                        <div><strong>Private by account</strong><small>Your account information stays tied to your sign-in.</small></div>
+                    </div>
+                    <div class="register-benefit">
+                        <span class="register-benefit-icon"><i class="fas fa-calendar-check" aria-hidden="true"></i></span>
+                        <div><strong>Appointments in one place</strong><small>Keep appointment details easy to find.</small></div>
+                    </div>
+                    <div class="register-benefit">
+                        <span class="register-benefit-icon"><i class="fas fa-comments" aria-hidden="true"></i></span>
+                        <div><strong>Helpful tools</strong><small>Use the assistant and dashboard for your account role.</small></div>
+                    </div>
+                </div>
+
+                <div class="register-signin d-none d-lg-block">
+                    Already have an account?
+                    <a href="{% url 'users:login' %}">Sign in</a>
+                </div>
+            </section>
+        </aside>
+
+        <section class="col-lg-8 col-xl-7" aria-labelledby="register-title">
+            <div class="register-card">
+                <header class="register-card-header">
+                    <div class="register-card-symbol" aria-hidden="true"><i class="fas fa-user-plus"></i></div>
+                    <div>
+                        <p class="register-step mb-1">CREATE YOUR ACCOUNT</p>
+                        <h2 id="register-title">Register as {{ user_type }}</h2>
+                        <p class="mb-0">Fill in your details to get started.</p>
+                    </div>
+                </header>
+
+                <form method="post" class="register-form">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <fieldset class="register-section">
+                        <legend><span>1</span> Sign-in details</legend>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form.username }}
-                                    <label for="{{ form.username.id_for_label }}">Username</label>
-                                    {% if form.username.errors %}
-                                        <div class="text-danger small mt-1">{{ form.username.errors|striptags }}</div>
-                                    {% endif %}
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.username }}<label for="{{ form.username.id_for_label }}">Username</label></div>
+                                    {% if form.username.errors %}<div class="register-error">{{ form.username.errors|striptags }}</div>{% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form.email }}
-                                    <label for="{{ form.email.id_for_label }}">Email</label>
-                                    {% if form.email.errors %}
-                                        <div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>
-                                    {% endif %}
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.email }}<label for="{{ form.email.id_for_label }}">Email address</label></div>
+                                    {% if form.email.errors %}<div class="register-error">{{ form.email.errors|striptags }}</div>{% endif %}
                                 </div>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <div class="row g-3 mt-2">
+                    <fieldset class="register-section">
+                        <legend><span>2</span> Your details</legend>
+                        <div class="row g-3">
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form.first_name }}
-                                    <label for="{{ form.first_name.id_for_label }}">First Name</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form.last_name }}
-                                    <label for="{{ form.last_name.id_for_label }}">Last Name</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-floating mt-3">
-                            {{ form.phone }}
-                            <label for="{{ form.phone.id_for_label }}">Phone Number</label>
-                        </div>
-
-                        {% if user_type == 'Patient' %}
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        {{ form.date_of_birth }}
-                                        <label for="{{ form.date_of_birth.id_for_label }}">Date of Birth</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        {{ form.emergency_contact }}
-                                        <label for="{{ form.emergency_contact.id_for_label }}">Emergency Contact</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-floating mt-3">
-                                {{ form.address }}
-                                <label for="{{ form.address.id_for_label }}">Address</label>
-                            </div>
-                        {% else %}
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        {{ form.specialization }}
-                                        <label for="{{ form.specialization.id_for_label }}">Specialization</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        {{ form.license_number }}
-                                        <label for="{{ form.license_number.id_for_label }}">License Number</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        {{ form.experience_years }}
-                                        <label for="{{ form.experience_years.id_for_label }}">Experience (Years)</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        {{ form.consultation_fee }}
-                                        <label for="{{ form.consultation_fee.id_for_label }}">Consultation Fee</label>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        <div class="row g-3 mt-2 py-3">
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form.password1 }}
-                                    <label for="{{ form.password1.id_for_label }}">Password</label>
-                                    {% if form.password1.errors %}
-                                        <div class="text-danger small mt-1">{{ form.password1.errors|striptags }}</div>
-                                    {% endif %}
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.first_name }}<label for="{{ form.first_name.id_for_label }}">First name</label></div>
+                                    {% if form.first_name.errors %}<div class="register-error">{{ form.first_name.errors|striptags }}</div>{% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    {{ form.password2 }}
-                                    <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
-                                    {% if form.password2.errors %}
-                                        <div class="text-danger small mt-1">{{ form.password2.errors|striptags }}</div>
-                                    {% endif %}
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.last_name }}<label for="{{ form.last_name.id_for_label }}">Last name</label></div>
+                                    {% if form.last_name.errors %}<div class="register-error">{{ form.last_name.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.phone }}<label for="{{ form.phone.id_for_label }}">Phone number</label></div>
+                                    {% if form.phone.errors %}<div class="register-error">{{ form.phone.errors|striptags }}</div>{% endif %}
                                 </div>
                             </div>
                         </div>
+                    </fieldset>
 
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-success btn-lg rounded-3 shadow-sm">
-                                <i class="fas fa-user-plus"></i> Register
-                            </button>
+                    {% if user_type == 'Patient' %}
+                    <fieldset class="register-section">
+                        <legend><span>3</span> Patient profile <small>Optional</small></legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.date_of_birth }}<label for="{{ form.date_of_birth.id_for_label }}">Date of birth</label></div>
+                                    {% if form.date_of_birth.errors %}<div class="register-error">{{ form.date_of_birth.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.emergency_contact }}<label for="{{ form.emergency_contact.id_for_label }}">Emergency contact</label></div>
+                                    {% if form.emergency_contact.errors %}<div class="register-error">{{ form.emergency_contact.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.address }}<label for="{{ form.address.id_for_label }}">Address</label></div>
+                                    {% if form.address.errors %}<div class="register-error">{{ form.address.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
                         </div>
-                    </form>
-                </div>
-                <div class="card-footer text-center bg-light rounded-bottom-4 py-3">
-                    <p class="mb-0">Already have an account? <a href="{% url 'users:login' %}">Login here</a></p>
-                </div>
+                    </fieldset>
+                    {% else %}
+                    <fieldset class="register-section">
+                        <legend><span>3</span> Appointment profile <small>Optional</small></legend>
+                        <p class="register-section-hint">Complete all four fields only if patients should be able to select this staff member when booking. Leave them blank for a staff account without appointment services.</p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.specialization }}<label for="{{ form.specialization.id_for_label }}">Specialization</label></div>
+                                    {% if form.specialization.errors %}<div class="register-error">{{ form.specialization.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.license_number }}<label for="{{ form.license_number.id_for_label }}">License number</label></div>
+                                    {% if form.license_number.errors %}<div class="register-error">{{ form.license_number.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.experience_years }}<label for="{{ form.experience_years.id_for_label }}">Experience (years)</label></div>
+                                    {% if form.experience_years.errors %}<div class="register-error">{{ form.experience_years.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.consultation_fee }}<label for="{{ form.consultation_fee.id_for_label }}">Consultation fee</label></div>
+                                    {% if form.consultation_fee.errors %}<div class="register-error">{{ form.consultation_fee.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    {% endif %}
+
+                    <fieldset class="register-section register-password-section">
+                        <legend><span>4</span> Secure your account</legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.password1 }}<label for="{{ form.password1.id_for_label }}">Password</label></div>
+                                    {% if form.password1.errors %}<div class="register-error">{{ form.password1.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="register-field">
+                                    <div class="form-floating">{{ form.password2 }}<label for="{{ form.password2.id_for_label }}">Confirm password</label></div>
+                                    {% if form.password2.errors %}<div class="register-error">{{ form.password2.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <button type="submit" class="btn register-submit w-100">
+                        {% if user_type == 'Staff' %}Submit staff access request{% else %}Create patient account{% endif %} <i class="fas fa-arrow-right ms-2" aria-hidden="true"></i>
+                    </button>
+                    <p class="register-terms mb-0">By creating an account, you agree to use the platform responsibly and keep your sign-in details private.</p>
+                </form>
+
+                <footer class="register-mobile-signin d-lg-none">
+                    Already have an account? <a href="{% url 'users:login' %}">Sign in</a>
+                </footer>
             </div>
-        </div>
+        </section>
     </div>
-</div>
+</main>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-page { max-width: 1180px; }
+    .register-intro {
+        position: relative;
+        overflow: hidden;
+        min-height: 100%;
+        padding: clamp(1.5rem, 3vw, 2.5rem);
+        border-radius: 26px;
+        color: #fff;
+        background: linear-gradient(145deg, #172554 0%, #3730a3 58%, #6d28d9 100%);
+        box-shadow: 0 22px 50px rgba(49, 46, 129, .2);
+    }
+    .register-intro::after {
+        content: "";
+        position: absolute;
+        width: 240px;
+        height: 240px;
+        right: -110px;
+        top: -95px;
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: 50%;
+        box-shadow: 0 0 0 28px rgba(255,255,255,.04), 0 0 0 58px rgba(255,255,255,.035);
+        pointer-events: none;
+    }
+    .register-kicker, .register-step {
+        color: #c7d2fe;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .13em;
+    }
+    .register-intro h1 {
+        max-width: 360px;
+        margin: 1.1rem 0;
+        font-size: clamp(2rem, 3.6vw, 2.8rem);
+        line-height: 1.08;
+        font-weight: 800;
+        letter-spacing: -.04em;
+    }
+    .register-intro-copy { max-width: 390px; color: #e0e7ff; line-height: 1.7; }
+    .register-benefits { display: grid; gap: 1.2rem; margin-top: 2.25rem; }
+    .register-benefit { display: flex; gap: .85rem; align-items: flex-start; }
+    .register-benefit-icon {
+        display: grid;
+        place-items: center;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        color: #e0e7ff;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: 12px;
+    }
+    .register-benefit strong, .register-benefit small { display: block; }
+    .register-benefit strong { margin: .05rem 0 .2rem; font-size: .95rem; }
+    .register-benefit small { color: #c7d2fe; line-height: 1.5; }
+    .register-signin { position: absolute; left: clamp(1.5rem, 3vw, 2.5rem); bottom: 2rem; color: #e0e7ff; }
+    .register-signin a, .register-mobile-signin a { color: #fff; font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .register-card {
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        border-radius: 26px;
+        background: #fff;
+        box-shadow: 0 22px 55px rgba(15, 23, 42, .09);
+    }
+    .register-card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.6rem clamp(1.25rem, 3vw, 2rem);
+        color: #fff;
+        background: linear-gradient(110deg, #4f46e5, #7c3aed);
+    }
+    .register-card-symbol {
+        display: grid;
+        place-items: center;
+        flex: 0 0 52px;
+        width: 52px;
+        height: 52px;
+        border: 1px solid rgba(255,255,255,.3);
+        border-radius: 16px;
+        background: rgba(255,255,255,.15);
+        font-size: 1.2rem;
+    }
+    .register-step { color: #ddd6fe; }
+    .register-card-header h2 { margin: 0 0 .2rem; font-size: 1.4rem; font-weight: 750; }
+    .register-card-header p:last-child { color: #ede9fe; font-size: .9rem; }
+    .register-form { padding: .5rem clamp(1.25rem, 3vw, 2rem) 1.5rem; }
+    .register-section { min-width: 0; margin: 1.35rem 0 0; padding: 0 0 1.25rem; border: 0; border-bottom: 1px solid #edf0f5; }
+    .register-section legend {
+        float: none;
+        width: 100%;
+        margin: 0 0 .85rem;
+        color: #1f2937;
+        font-size: .94rem;
+        font-weight: 750;
+    }
+    .register-section legend > span {
+        display: inline-grid;
+        place-items: center;
+        width: 25px;
+        height: 25px;
+        margin-right: .45rem;
+        border-radius: 50%;
+        color: #4f46e5;
+        background: #eef2ff;
+        font-size: .75rem;
+    }
+    .register-section legend small { margin-left: .35rem; color: #667085; font-size: .75rem; font-weight: 500; }
+    .register-section-hint { margin: -.35rem 0 1rem; color: #667085; font-size: .82rem; line-height: 1.5; }
+    .register-field .form-floating > .form-control { height: 58px; min-height: 58px; border-color: #d8dee9; border-radius: 12px; background-color: #fbfcff; }
+    .register-field .form-floating > textarea.form-control { height: 92px; min-height: 92px; }
+    .register-field .form-floating > .form-control:focus { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 .22rem rgba(99,102,241,.12); }
+    .register-field .form-floating > label { padding: 1rem .85rem; color: #667085; }
+    .register-error { margin: .35rem .25rem 0; color: #b42318; font-size: .78rem; line-height: 1.4; }
+    .register-password-section { border-bottom: 0; }
+    .register-submit {
+        margin-top: .4rem;
+        padding: .95rem 1.25rem;
+        border: 0;
+        border-radius: 13px;
+        color: #fff;
+        background: linear-gradient(110deg, #4f46e5, #7c3aed);
+        box-shadow: 0 10px 22px rgba(79,70,229,.22);
+        font-weight: 750;
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .register-submit:hover { color: #fff; transform: translateY(-1px); box-shadow: 0 13px 27px rgba(79,70,229,.28); }
+    .register-submit:focus-visible { outline: 3px solid #a5b4fc; outline-offset: 3px; }
+    .register-terms { margin-top: .85rem; color: #667085; font-size: .75rem; line-height: 1.5; text-align: center; }
+    .register-mobile-signin { padding: 1rem; color: #475467; background: #f8fafc; text-align: center; }
+    .register-mobile-signin a { color: #4f46e5; }
+    @media (max-width: 991.98px) {
+        .register-intro { padding: 1.5rem; }
+        .register-intro h1 { margin: .7rem 0; font-size: 2rem; }
+        .register-intro-copy { margin-bottom: 0; }
+        .register-benefits { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin-top: 1.4rem; }
+        .register-benefit { gap: .55rem; }
+        .register-benefit-icon { flex-basis: 34px; width: 34px; height: 34px; }
+        .register-benefit strong { font-size: .8rem; }
+        .register-benefit small { font-size: .72rem; }
+    }
+    @media (max-width: 575.98px) {
+        .register-page { padding-top: 1rem !important; }
+        .register-intro, .register-card { border-radius: 19px; }
+        .register-benefits { grid-template-columns: 1fr; gap: .8rem; }
+        .register-benefit strong { font-size: .88rem; }
+        .register-benefit small { font-size: .78rem; }
+        .register-card-header { gap: .75rem; padding: 1.2rem; }
+        .register-card-symbol { flex-basis: 44px; width: 44px; height: 44px; border-radius: 13px; }
+        .register-card-header h2 { font-size: 1.2rem; }
+        .register-form { padding: .25rem 1rem 1.2rem; }
+        .register-section { margin-top: 1.1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .register-submit { transition: none; }
+    }
+</style>
 {% endblock %}
