@@ -18,7 +18,7 @@
                                 {% if profile_type == 'patient' %}
                                     Manage your health appointments and get AI-powered assistance
                                 {% else %}
-                                    Manage your patient appointments and consultations
+                                    Manage hospital appointments and patient records
                                 {% endif %}
                             </p>
                         </div>
@@ -85,27 +85,6 @@
                                 </span>
                                 <span class="fw-bold">{{ profile.emergency_contact|default:"Not set" }}</span>
                             </div>
-                        {% elif profile_type == 'staff' and has_appointment_profile %}
-                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                                <span class="text-muted">
-                                    <i class="fas fa-stethoscope me-2"></i> Specialization
-                                </span>
-                                <span class="fw-bold">{{ profile.specialization }}</span>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                                <span class="text-muted">
-                                    <i class="fas fa-award me-2"></i> Experience
-                                </span>
-                                <span class="fw-bold">{{ profile.experience_years }} years</span>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted">
-                                    <i class="fas fa-dollar-sign me-2"></i> Fee
-                                </span>
-                                <span class="fw-bold">${{ profile.consultation_fee }}</span>
-                            </div>
                         {% elif profile_type == 'staff' %}
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="text-muted"><i class="fas fa-user-tie me-2"></i> Account type</span>
@@ -161,7 +140,6 @@
                             
                         {% else %}
                             <!-- Staff Actions -->
-                            {% if has_appointment_profile %}
                             <div class="col-md-6">
                                 <a href="{% url 'appointments:my_appointments' %}" class="text-decoration-none">
                                     <div class="action-card p-4 rounded-4 text-center" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; transition: all 0.3s;">
@@ -171,20 +149,13 @@
                                     </div>
                                 </a>
                             </div>
-                            {% else %}
-                            <div class="col-12">
-                                <div class="alert alert-info mb-0">
-                                    <strong>Staff account ready.</strong> Ask a hospital administrator to add an appointment profile if you need appointment management.
-                                </div>
-                            </div>
-                            {% endif %}
                             
                             <div class="col-md-6">
                                 <a href="{% url 'chatbot:chat' %}" class="text-decoration-none">
                                     <div class="action-card p-4 rounded-4 text-center" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; transition: all 0.3s;">
                                         <i class="fas fa-robot fa-3x mb-3"></i>
                                         <h5 class="mb-2">AI Assistant</h5>
-                                        <p class="mb-0 small opacity-90">Medical information tool</p>
+                                        <p class="mb-0 small opacity-90">Health information and hospital records</p>
                                     </div>
                                 </a>
                             </div>
@@ -200,10 +171,8 @@
                                     <p class="mb-0 small text-muted">
                                         {% if profile_type == 'patient' %}
                                         Book appointments with qualified providers and get AI-powered health assistance 24/7.
-                                    {% elif has_appointment_profile %}
-                                        Manage your patient appointments efficiently with our modern platform.
                                     {% else %}
-                                        Your staff account is ready. Ask a hospital administrator to add an appointment profile if you need appointment services.
+                                        Manage hospital appointments efficiently with our modern platform.
                                     {% endif %}
                                 </p>
                             </div>

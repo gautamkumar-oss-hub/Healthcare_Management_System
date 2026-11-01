@@ -12,7 +12,7 @@
                 <h1>{% if user_type == 'Staff' %}Create your staff account{% else %}Your health account starts here{% endif %}</h1>
                 <p class="register-intro-copy">
                     {% if user_type == 'Staff' %}
-                        Request hospital staff access. An administrator must approve your account before you can sign in. If you provide appointment services, add an optional appointment profile below.
+                        Request a hospital staff account. An administrator must approve your access before you can sign in.
                     {% else %}
                         Create an account to book appointments, keep track of your visits, and use your personal health assistant.
                     {% endif %}
@@ -126,41 +126,10 @@
                             </div>
                         </div>
                     </fieldset>
-                    {% else %}
-                    <fieldset class="register-section">
-                        <legend><span>3</span> Appointment profile <small>Optional</small></legend>
-                        <p class="register-section-hint">Complete all four fields only if patients should be able to select this staff member when booking. Leave them blank for a staff account without appointment services.</p>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="register-field">
-                                    <div class="form-floating">{{ form.specialization }}<label for="{{ form.specialization.id_for_label }}">Specialization</label></div>
-                                    {% if form.specialization.errors %}<div class="register-error">{{ form.specialization.errors|striptags }}</div>{% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="register-field">
-                                    <div class="form-floating">{{ form.license_number }}<label for="{{ form.license_number.id_for_label }}">License number</label></div>
-                                    {% if form.license_number.errors %}<div class="register-error">{{ form.license_number.errors|striptags }}</div>{% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="register-field">
-                                    <div class="form-floating">{{ form.experience_years }}<label for="{{ form.experience_years.id_for_label }}">Experience (years)</label></div>
-                                    {% if form.experience_years.errors %}<div class="register-error">{{ form.experience_years.errors|striptags }}</div>{% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="register-field">
-                                    <div class="form-floating">{{ form.consultation_fee }}<label for="{{ form.consultation_fee.id_for_label }}">Consultation fee</label></div>
-                                    {% if form.consultation_fee.errors %}<div class="register-error">{{ form.consultation_fee.errors|striptags }}</div>{% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
                     {% endif %}
 
                     <fieldset class="register-section register-password-section">
-                        <legend><span>4</span> Secure your account</legend>
+                        <legend><span>{% if user_type == 'Patient' %}4{% else %}3{% endif %}</span> Secure your account</legend>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="register-field">
@@ -301,7 +270,6 @@
         font-size: .75rem;
     }
     .register-section legend small { margin-left: .35rem; color: #667085; font-size: .75rem; font-weight: 500; }
-    .register-section-hint { margin: -.35rem 0 1rem; color: #667085; font-size: .82rem; line-height: 1.5; }
     .register-field .form-floating > .form-control { height: 58px; min-height: 58px; border-color: #d8dee9; border-radius: 12px; background-color: #fbfcff; }
     .register-field .form-floating > textarea.form-control { height: 92px; min-height: 92px; }
     .register-field .form-floating > .form-control:focus { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 .22rem rgba(99,102,241,.12); }

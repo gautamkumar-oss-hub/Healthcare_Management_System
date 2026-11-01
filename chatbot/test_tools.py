@@ -62,21 +62,28 @@ class ChatToolAuthorizationTests(TestCase):
         self.other_appointment.refresh_from_db()
         self.assertEqual(self.other_appointment.status, "pending")
 
-    def test_staff_cannot_read_another_providers_appointment(self):
+    def test_staff_can_read_hospital_appointments(self):
         result = _execute(
             "get_appointment_details",
             {"appointment_id": self.other_appointment.pk},
             self.staff_user,
         )
-        self.assertIn("error", result)
+        self.assertEqual(result["id"], self.other_appointment.pk)
+        self.assertEqual(result["patient"]["id"], self.other_patient.pk)
 
     def test_guest_cannot_execute_account_tools(self):
         result = _execute("list_my_appointments", {}, AnonymousUser())
         self.assertIn("error", result)
 
-    def test_staff_without_appointment_profile_has_no_appointment_records(self):
+    def test_staff_without_provider_profile_can_view_hospital_appointments(self):
         staff_user = User.objects.create_user(username="general-staff", user_type="staff")
-        self.assertEqual(_execute("list_my_appointments", {}, staff_user), [])
+        result = _execute("list_hospital_appointments", {}, staff_user)
+        self.assertEqual({item["id"] for item in result}, {self.own_appointment.pk, self.other_appointment.pk})
+
+    def test_inactive_staff_cannot_execute_tools(self):
+        self.staff_user.is_active = False
+        self.staff_user.save(update_fields=["is_active"])
+        self.assertIn("error", _execute("list_hospital_appointments", {}, self.staff_user))
 
     def test_unsupported_role_cannot_call_any_tool(self):
         unsupported_user = User.objects.create_user(username="unsupported", user_type="other")

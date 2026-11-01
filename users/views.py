@@ -52,10 +52,5 @@ def dashboard(request):
         context['profile_type'] = 'patient'
     elif request.user.user_type == 'staff':
         context['profile_type'] = 'staff'
-        if hasattr(request.user, 'doctor'):
-            context['profile'] = request.user.doctor
-            context['has_appointment_profile'] = True
-        else:
-            context['has_appointment_profile'] = False
     
     return render(request, 'users/dashboard.html', context)
