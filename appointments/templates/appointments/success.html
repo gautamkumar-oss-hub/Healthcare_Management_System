@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Appointment Booked - Healthcare Management System{% endblock %}
+{% block title %}Appointment Details - Healthcare Management System{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -7,19 +7,25 @@
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-body text-center py-5">
-                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                    <h2 class="text-success">Appointment Booked Successfully!</h2>
+                    <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                    <h2 class="text-primary">Appointment Details</h2>
                     
                     <div class="mt-4">
                         <div class="card bg-light">
                             <div class="card-body">
                                 <h5>Appointment Details:</h5>
+                                {% if user.user_type == 'patient' %}
                                 <p><strong>Provider:</strong> {{ appointment.doctor.user.get_full_name|default:appointment.doctor.user.username }}</p>
+                                <p><strong>Service:</strong> {{ appointment.doctor.specialization }}</p>
+                                {% else %}
+                                <p><strong>Patient:</strong> {{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}</p>
+                                {% if appointment.notes %}<p><strong>Staff notes:</strong> {{ appointment.notes }}</p>{% endif %}
+                                {% endif %}
                                 <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
                                 <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
                                 <p><strong>Reason:</strong> {{ appointment.reason }}</p>
                                 <p><strong>Status:</strong> 
-                                    <span class="badge bg-warning">{{ appointment.get_status_display }}</span>
+                                    <span class="badge {% if appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'pending' %}bg-warning text-dark{% elif appointment.status == 'completed' %}bg-info text-dark{% else %}bg-secondary{% endif %}">{{ appointment.get_status_display }}</span>
                                 </p>
                             </div>
                         </div>

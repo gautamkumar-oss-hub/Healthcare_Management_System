@@ -88,7 +88,7 @@ def _provider_data(provider):
     }
 
 
-def _appointment_data(appointment, include_patient=False):
+def _appointment_data(appointment, include_patient=False, include_staff_notes=False):
     result = {
         "id": appointment.pk,
         "provider": _provider_data(appointment.doctor),
@@ -96,8 +96,9 @@ def _appointment_data(appointment, include_patient=False):
         "time": appointment.appointment_time.strftime("%H:%M"),
         "status": appointment.status,
         "reason": appointment.reason[:1000],
-        "notes": appointment.notes[:1000],
     }
+    if include_staff_notes:
+        result["staff_notes"] = appointment.notes[:1000]
     if include_patient:
         user = appointment.patient.user
         result["patient"] = {
@@ -157,7 +158,10 @@ def _execute(name, args, user):
     if name == "list_hospital_appointments" and role == "staff" and not args:
         appointments = Appointment.objects.select_related("doctor__user", "patient__user")
         appointments = appointments.order_by("-appointment_date", "-appointment_time")
-        return [_appointment_data(item, include_patient=True) for item in appointments[:50]]
+        return [
+            _appointment_data(item, include_patient=True, include_staff_notes=True)
+            for item in appointments[:50]
+        ]
 
     if name == "book_appointment" and role == "patient":
         expected = {"provider_id", "appointment_date", "appointment_time", "reason"}
@@ -246,14 +250,10 @@ def _execute(name, args, user):
         if not appointment:
             return {"error": "Hospital appointment not found."}
         if name == "get_appointment_details" and set(args) == {"appointment_id"}:
-            return _appointment_data(appointment, include_patient=True)
+            return _appointment_data(appointment, include_patient=True, include_staff_notes=True)
         if name == "update_appointment_status" and set(args) == {"appointment_id", "status"}:
             status = args["status"]
-            if not isinstance(status, str) or status not in {"confirmed", "completed", "cancelled"}:
-                return {"error": "Invalid appointment status."}
-            if (appointment.status == "cancelled" and status == "confirmed") or (
-                appointment.status == "completed" and status == "cancelled"
-            ):
+            if not isinstance(status, str) or not appointment.can_transition_to(status):
                 return {"error": "Invalid appointment status transition."}
             appointment.status = status
             appointment.save(update_fields=["status", "updated_at"])

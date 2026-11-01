@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Count, Q
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from .models import Appointment
 from .forms import AppointmentForm
 from users.models import Doctor, Patient
@@ -89,14 +91,47 @@ def my_appointments(request):
         # ✅ IMPROVED: Use select_related to avoid N+1 queries
         appointments = Appointment.objects.select_related('doctor__user', 'patient__user')
     else:
-        appointments = []
-    
-    return render(request, 'appointments/list.html', {'appointments': appointments})
+        appointments = Appointment.objects.none()
+
+    counts = appointments.aggregate(
+        total=Count('id'),
+        pending=Count('id', filter=Q(status='pending')),
+        confirmed=Count('id', filter=Q(status='confirmed')),
+        completed=Count('id', filter=Q(status='completed')),
+        cancelled=Count('id', filter=Q(status='cancelled')),
+    )
+    return render(request, 'appointments/list.html', {
+        'appointments': appointments,
+        'appointment_counts': counts,
+    })
+
+
+@login_required
+@require_POST
+def cancel_appointment(request, appointment_id):
+    """Let a patient cancel only their own pending appointment."""
+    if request.user.user_type != 'patient' or not hasattr(request.user, 'patient'):
+        messages.error(request, 'Only patients can cancel their appointments.')
+        return redirect('appointments:my_appointments')
+
+    appointment = get_object_or_404(
+        Appointment,
+        pk=appointment_id,
+        patient=request.user.patient,
+        status='pending',
+    )
+    appointment.status = 'cancelled'
+    appointment.save(update_fields=['status', 'updated_at'])
+    messages.success(request, 'Your appointment has been cancelled.')
+    return redirect('appointments:my_appointments')
 
 @login_required
 def appointment_success(request, appointment_id):
-    """Appointment booking success page"""
-    appointment = get_object_or_404(Appointment, id=appointment_id)
+    """Show appointment details to its patient or authenticated hospital staff."""
+    appointment = get_object_or_404(
+        Appointment.objects.select_related('patient__user', 'doctor__user'),
+        id=appointment_id,
+    )
     
     # Patients can view their own appointment; hospital staff can view hospital appointments.
     owns_appointment = (
@@ -113,38 +148,28 @@ def appointment_success(request, appointment_id):
 @login_required
 def update_appointment(request, appointment_id):
     """Staff can update appointment status with validation."""
-    appointment = get_object_or_404(Appointment, id=appointment_id)
-    
     # Only hospital staff can update appointments.
     if request.user.user_type != 'staff':
         messages.error(request, 'Only staff can update appointments.')
         return redirect('appointments:my_appointments')
+
+    appointment = get_object_or_404(Appointment, id=appointment_id)
     
     if request.method == 'POST':
         new_status = request.POST.get('status')
         notes = request.POST.get('notes', '')
         
-        # ✅ NEW: Validate status transitions
-        valid_statuses = ['pending', 'confirmed', 'completed', 'cancelled']
-        
-        if new_status not in valid_statuses:
-            messages.error(request, 'Invalid status selected.')
+        if not appointment.can_transition_to(new_status):
+            messages.error(request, 'That appointment status change is not allowed.')
             return render(request, 'appointments/update.html', {'appointment': appointment})
-        
-        # ✅ NEW: Business logic validation
-        # Can't confirm a cancelled appointment
-        if appointment.status == 'cancelled' and new_status == 'confirmed':
-            messages.error(request, 'Cannot confirm a cancelled appointment. Please create a new one.')
-            return render(request, 'appointments/update.html', {'appointment': appointment})
-        
-        # Can't cancel a completed appointment
-        if appointment.status == 'completed' and new_status == 'cancelled':
-            messages.error(request, 'Cannot cancel a completed appointment.')
+
+        if not isinstance(notes, str) or len(notes) > 5000:
+            messages.error(request, 'Staff notes must be 5,000 characters or fewer.')
             return render(request, 'appointments/update.html', {'appointment': appointment})
         
         # Update the appointment
         appointment.status = new_status
-        appointment.notes = notes
+        appointment.notes = notes.strip()
         appointment.save()
         
         messages.success(request, f'Appointment status updated to {appointment.get_status_display()}!')

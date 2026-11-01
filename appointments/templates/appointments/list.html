@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}My Appointments - Healthcare Management System{% endblock %}
+{% block title %}{% if user.user_type == 'staff' %}Hospital Appointments{% else %}My Appointments{% endif %} - Healthcare Management System{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,13 +8,13 @@
         <div>
             <h2 class="mb-1">
                 <i class="fas fa-calendar-check text-primary me-2"></i>
-                My Appointments
+                {% if user.user_type == 'staff' %}Hospital Appointments{% else %}My Appointments{% endif %}
             </h2>
             <p class="text-muted mb-0">
                 {% if user.user_type == 'patient' %}
-                    Manage and track your medical appointments
+                    View appointments booked with your selected provider
                 {% else %}
-                    Manage your patient consultations
+                    Review and manage appointments across the hospital
                 {% endif %}
             </p>
         </div>
@@ -26,47 +26,56 @@
         {% endif %}
     </div>
     
-    {% if appointments %}
-        <!-- Filter/Stats Bar -->
+    <!-- Live appointment summary -->
         <div class="row mb-4 g-3">
-            <div class="col-md-3">
+            <div class="col-6 col-xl">
                 <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white;">
                     <div class="card-body text-center">
                         <i class="fas fa-clock fa-2x mb-2"></i>
-                        <h3 class="mb-0">{{ appointments|length }}</h3>
+                        <h3 class="mb-0">{{ appointment_counts.total }}</h3>
                         <small>Total Appointments</small>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-xl">
                 <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #10B981, #059669); color: white;">
                     <div class="card-body text-center">
                         <i class="fas fa-check-circle fa-2x mb-2"></i>
-                        <h3 class="mb-0">0</h3>
+                        <h3 class="mb-0">{{ appointment_counts.confirmed }}</h3>
                         <small>Confirmed</small>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-xl">
                 <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white;">
                     <div class="card-body text-center">
                         <i class="fas fa-hourglass-half fa-2x mb-2"></i>
-                        <h3 class="mb-0">0</h3>
+                        <h3 class="mb-0">{{ appointment_counts.pending }}</h3>
                         <small>Pending</small>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-6 col-xl">
                 <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: white;">
                     <div class="card-body text-center">
                         <i class="fas fa-clipboard-check fa-2x mb-2"></i>
-                        <h3 class="mb-0">0</h3>
+                        <h3 class="mb-0">{{ appointment_counts.completed }}</h3>
                         <small>Completed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-xl">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #64748B, #475569); color: white;">
+                    <div class="card-body text-center">
+                        <i class="fas fa-ban fa-2x mb-2"></i>
+                        <h3 class="mb-0">{{ appointment_counts.cancelled }}</h3>
+                        <small>Cancelled</small>
                     </div>
                 </div>
             </div>
         </div>
 
+    {% if appointments %}
         <!-- Appointments Grid -->
         <div class="row g-4">
             {% for appointment in appointments %}
@@ -110,7 +119,7 @@
                                     {% if user.user_type == 'patient' %}
                                         {{ appointment.doctor.user.get_full_name|default:appointment.doctor.user.username }}
                                     {% else %}
-                                        {{ appointment.patient.user.get_full_name }}
+                                        {{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}
                                     {% endif %}
                                 </h5>
                                 
@@ -135,7 +144,7 @@
                                     <p class="mb-0">{{ appointment.reason|truncatewords:20 }}</p>
                                 </div>
                                 
-                                {% if appointment.notes %}
+                                {% if user.user_type == 'staff' and appointment.notes %}
                                     <div class="alert alert-info mb-3">
                                         <small class="text-muted d-block mb-1">
                                             <i class="fas fa-comment-medical me-1"></i> Staff Notes:
@@ -164,15 +173,17 @@
                         <!-- Quick Actions Footer -->
                         <div class="card-footer bg-light border-0">
                             <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-primary flex-fill">
+                                <a href="{% url 'appointments:success' appointment.id %}" class="btn btn-sm btn-outline-primary flex-fill">
                                     <i class="fas fa-info-circle me-1"></i>
                                     Details
-                                </button>
+                                </a>
                                 {% if user.user_type == 'patient' and appointment.status == 'pending' %}
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-times me-1"></i>
-                                        Cancel
-                                    </button>
+                                    <form method="post" action="{% url 'appointments:cancel' appointment.id %}" class="flex-fill" onsubmit="return confirm('Cancel this pending appointment?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                            <i class="fas fa-times me-1"></i>Cancel
+                                        </button>
+                                    </form>
                                 {% endif %}
                             </div>
                         </div>
@@ -193,13 +204,17 @@
                         {% if user.user_type == 'patient' %}
                             You haven't booked any appointments yet. Start by booking your first consultation!
                         {% else %}
-                            No patients have booked appointments with you yet.
+                            There are no hospital appointments to manage yet.
                         {% endif %}
                     </p>
                     {% if user.user_type == 'patient' %}
                         <a href="{% url 'appointments:book' %}" class="btn btn-success btn-lg">
                             <i class="fas fa-calendar-plus me-2"></i>
                             Book Your First Appointment
+                        </a>
+                    {% else %}
+                        <a href="{% url 'chatbot:chat' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-robot me-2"></i>Open the staff assistant
                         </a>
                     {% endif %}
                 </div>

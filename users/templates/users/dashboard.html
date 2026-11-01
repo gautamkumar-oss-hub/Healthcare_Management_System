@@ -192,7 +192,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 mb-2">Total Appointments</h6>
-                            <h2 class="mb-0 fw-bold">0</h2>
+                            <h2 class="mb-0 fw-bold">{{ appointment_total }}</h2>
                         </div>
                         <i class="fas fa-calendar-alt fa-3x opacity-25"></i>
                     </div>
@@ -206,7 +206,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 mb-2">AI Conversations</h6>
-                            <h2 class="mb-0 fw-bold">0</h2>
+                            <h2 class="mb-0 fw-bold">{{ conversation_total }}</h2>
                         </div>
                         <i class="fas fa-comments fa-3x opacity-25"></i>
                     </div>
@@ -220,10 +220,37 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-white-50 mb-2">Upcoming Appointments</h6>
-                            <h2 class="mb-0 fw-bold">0</h2>
+                            <h2 class="mb-0 fw-bold">{{ appointment_upcoming }}</h2>
                         </div>
                         <i class="fas fa-chart-line fa-3x opacity-25"></i>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif profile_type == 'staff' %}
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card stats-card border-0 shadow-custom fade-in" style="background: linear-gradient(135deg, #2563EB, #1D4ED8);">
+                <div class="card-body text-white d-flex justify-content-between align-items-center">
+                    <div><h6 class="text-white-50 mb-2">Hospital Appointments</h6><h2 class="mb-0 fw-bold">{{ hospital_appointment_total }}</h2></div>
+                    <i class="fas fa-calendar-check fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card stats-card border-0 shadow-custom fade-in" style="background: linear-gradient(135deg, #D97706, #B45309);">
+                <div class="card-body text-white d-flex justify-content-between align-items-center">
+                    <div><h6 class="text-white-50 mb-2">Awaiting Review</h6><h2 class="mb-0 fw-bold">{{ hospital_appointment_pending }}</h2></div>
+                    <i class="fas fa-clock fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card stats-card border-0 shadow-custom fade-in" style="background: linear-gradient(135deg, #059669, #047857);">
+                <div class="card-body text-white d-flex justify-content-between align-items-center">
+                    <div><h6 class="text-white-50 mb-2">Registered Patients</h6><h2 class="mb-0 fw-bold">{{ hospital_patient_total }}</h2></div>
+                    <i class="fas fa-users fa-3x opacity-25"></i>
                 </div>
             </div>
         </div>

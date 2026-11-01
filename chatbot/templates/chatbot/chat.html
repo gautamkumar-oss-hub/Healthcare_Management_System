@@ -103,9 +103,13 @@
                 {% if user.is_authenticated and user.user_type == 'patient' %}
                 <button class="btn btn-outline-primary quick-question" data-question="Show my appointments"><i class="fas fa-calendar-check me-2" aria-hidden="true"></i>My appointments</button>
                 <button class="btn btn-outline-primary quick-question" data-question="Find a provider for an appointment"><i class="fas fa-user-check me-2" aria-hidden="true"></i>Find a provider</button>
+                <button class="btn btn-outline-primary quick-question" data-question="Show my profile"><i class="fas fa-id-card me-2" aria-hidden="true"></i>My profile</button>
+                <button class="btn btn-outline-primary quick-question" data-question="Help me book an appointment"><i class="fas fa-calendar-plus me-2" aria-hidden="true"></i>Book appointment</button>
                 {% elif user.is_authenticated and user.user_type == 'staff' %}
                 <button class="btn btn-outline-primary quick-question" data-question="List hospital appointments"><i class="fas fa-calendar-check me-2" aria-hidden="true"></i>Hospital appointments</button>
                 <button class="btn btn-outline-primary quick-question" data-question="Show appointment counts by status"><i class="fas fa-chart-bar me-2" aria-hidden="true"></i>Appointment counts</button>
+                <button class="btn btn-outline-primary quick-question" data-question="List patients"><i class="fas fa-users me-2" aria-hidden="true"></i>Patient directory</button>
+                <button class="btn btn-outline-primary quick-question" data-question="Show my staff profile"><i class="fas fa-id-card me-2" aria-hidden="true"></i>My profile</button>
                 {% else %}
                 <button class="btn btn-outline-primary quick-question" data-question="What is diabetes?"><i class="fas fa-question-circle me-2" aria-hidden="true"></i>What is diabetes?</button>
                 <button class="btn btn-outline-primary quick-question" data-question="How can I lower blood pressure?"><i class="fas fa-heart me-2" aria-hidden="true"></i>Lower blood pressure</button>
