@@ -1,216 +1,130 @@
-// ✅ FIXED: Enhanced chat.js with proper CSRF token handling
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const messages = document.getElementById('chatMessages');
+    const typing = document.getElementById('typingIndicator');
+    const status = document.getElementById('chatStatus');
 
-document.addEventListener('DOMContentLoaded', function() {
-    const chatForm = document.getElementById('chatForm');
-    const messageInput = document.getElementById('messageInput');
-    const chatMessages = document.getElementById('chatMessages');
-    const typingIndicator = document.getElementById('typingIndicator');
+    if (!form || !input || !sendButton || !messages || !typing || !status) return;
 
-    console.log('Chat system initialized');
+    const endpoint = messages.dataset.endpoint;
+    const sendLabel = form.dataset.sendLabel || 'Send';
+    const waitLabel = form.dataset.waitLabel || 'Sending...';
+    let isSending = false;
 
-    // Auto-scroll to bottom
-    function scrollToBottom() {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+    function scrollToLatest() {
+        messages.scrollTop = messages.scrollHeight;
     }
 
-    // Add message to chat with better formatting
-    function addMessage(content, isUser = true) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
-        
-        const now = new Date();
-        const timeString = now.toLocaleString();
-        
-        // Sanitize content and convert newlines
-        const sanitizedContent = content
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/\n/g, '<br>');
-        
-        messageDiv.innerHTML = `
-            <div class="message-wrapper">
-                <div class="message-sender">
-                    ${isUser ? '<i class="fas fa-user-circle"></i> You' : '<i class="fas fa-robot"></i> AI Assistant'}
-                </div>
-                <div class="message-content">
-                    <div class="message-text">${sanitizedContent}</div>
-                </div>
-                <div class="message-time">
-                    <i class="far fa-clock me-1"></i>
-                    ${timeString}
-                </div>
-            </div>
-        `;
-        
-        chatMessages.appendChild(messageDiv);
-        scrollToBottom();
+    function addMessage(content, isUser) {
+        const article = document.createElement('article');
+        article.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper';
+        const sender = document.createElement('div');
+        sender.className = 'message-sender';
+        sender.textContent = isUser ? 'You' : 'Assistant';
+        const bubble = document.createElement('div');
+        bubble.className = 'message-content';
+        const text = document.createElement('div');
+        text.className = 'message-text';
+        text.textContent = content;
+        bubble.appendChild(text);
+        const time = document.createElement('time');
+        time.className = 'message-time';
+        time.dateTime = new Date().toISOString();
+        time.textContent = new Intl.DateTimeFormat(undefined, {
+            hour: 'numeric', minute: '2-digit'
+        }).format(new Date());
+
+        wrapper.append(sender, bubble, time);
+        article.appendChild(wrapper);
+        messages.appendChild(article);
+        scrollToLatest();
     }
 
-    // Show/hide typing indicator
-    function showTypingIndicator() {
-        typingIndicator.style.display = 'block';
-        scrollToBottom();
+    function setSending(value) {
+        isSending = value;
+        sendButton.disabled = value;
+        input.disabled = value;
+        sendButton.querySelector('span').textContent = value ? waitLabel : sendLabel;
+        typing.hidden = !value;
+        if (value) status.textContent = 'Assistant is responding...';
+        scrollToLatest();
     }
 
-    function hideTypingIndicator() {
-        typingIndicator.style.display = 'none';
+    function getCsrfToken() {
+        const inputToken = form.querySelector('[name="csrfmiddlewaretoken"]');
+        if (inputToken?.value) return inputToken.value;
+        const cookie = document.cookie.split('; ').find((part) => part.startsWith('csrftoken='));
+        return cookie ? decodeURIComponent(cookie.slice('csrftoken='.length)) : '';
     }
 
-    // ✅ FIXED: Get CSRF token from cookie (proper Django way)
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    // ✅ FIXED: Get CSRF token (supports both methods)
-    function getCSRFToken() {
-        // First try to get from cookie
-        let token = getCookie('csrftoken');
-        
-        // If not in cookie, get from form token
-        if (!token) {
-            const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
-            token = tokenInput ? tokenInput.value : '';
-        }
-        
-        return token;
-    }
-
-    // Enhanced message sending with proper CSRF handling
     async function sendMessage(message) {
-        console.log('Sending message:', message);
-        
+        setSending(true);
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 60000);
         try {
-            const csrfToken = getCSRFToken();
-            
-            if (!csrfToken) {
-                throw new Error('CSRF token not found. Please refresh the page.');
-            }
-
-            const response = await fetch('/chatbot/send/', {
+            const response = await fetch(endpoint, {
                 method: 'POST',
+                credentials: 'same-origin',
+                signal: controller.signal,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,  // ✅ FIXED: Proper CSRF header
+                    'X-CSRFToken': getCsrfToken(),
                 },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({ message }),
             });
-
-            console.log('Response status:', response.status);
-            
-            // Handle different response statuses
+            const data = await response.json().catch(() => ({}));
             if (!response.ok) {
-                if (response.status === 403) {
-                    throw new Error('Session expired. Please refresh the page.');
-                } else if (response.status === 500) {
-                    throw new Error('Server error. Please try again later.');
-                } else {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
+                throw new Error(data.error || (response.status === 403
+                    ? 'Your session may have expired. Refresh the page and try again.'
+                    : 'The assistant could not process that message. Try again.'));
             }
-
-            const data = await response.json();
-            console.log('Response data:', data);
-
-            if (data.success) {
-                addMessage(data.ai_response, false);
-                
-                // Show helpful message for guests
-                if (!data.is_authenticated) {
-                    console.log('Guest mode - conversation not saved');
-                }
-            } else {
-                console.error('API Error:', data.error);
-                addMessage(`Error: ${data.error || 'Something went wrong'}`, false);
-                
-                // Show debug info for superusers
-                if (data.debug) {
-                    console.error('Debug info:', data.debug);
-                }
+            if (!data.success || typeof data.ai_response !== 'string') {
+                throw new Error(data.error || 'The assistant returned an unexpected response.');
             }
+            addMessage(data.ai_response, false);
+            status.textContent = data.is_authenticated
+                ? 'Conversation saved to your account.'
+                : 'Guest messages are not saved.';
         } catch (error) {
-            console.error('Network/Parse error:', error);
-            
-            let errorMessage = 'Sorry, I encountered an error. ';
-            
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                errorMessage += 'Please check your internet connection.';
-            } else if (error.message.includes('CSRF')) {
-                errorMessage += 'Please refresh the page and try again.';
-            } else {
-                errorMessage += error.message;
-            }
-            
-            addMessage(errorMessage, false);
+            const messageText = error.name === 'AbortError'
+                ? 'The assistant took too long to respond. Please try again.'
+                : error.message;
+            addMessage(messageText, false);
+            status.textContent = 'Message was not completed.';
         } finally {
-            hideTypingIndicator();
+            window.clearTimeout(timeout);
+            setSending(false);
+            input.focus({ preventScroll: true });
         }
     }
 
-    // Form submission handler
-    chatForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const message = messageInput.value.trim();
-        if (!message) {
-            console.log('Empty message, ignoring');
-            return;
-        }
-
-        console.log('Form submitted with message:', message);
-
-        // Add user message to chat
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (isSending) return;
+        const message = input.value.trim();
+        if (!message || message.length > 1000) return;
         addMessage(message, true);
-        
-        // Clear input and show typing indicator
-        messageInput.value = '';
-        showTypingIndicator();
-        
-        // Send message to backend
+        input.value = '';
         sendMessage(message);
     });
 
-    // Handle Enter key press (without Shift)
-    messageInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            chatForm.dispatchEvent(new Event('submit'));
-        }
+    input.addEventListener('input', () => {
+        status.textContent = `${input.value.length}/${input.maxLength} characters`;
     });
 
-    // Auto-focus on input
-    messageInput.focus();
-    
-    // Initial scroll to bottom
-    scrollToBottom();
-    
-    // Handle input focus for mobile
-    messageInput.addEventListener('focus', function() {
-        setTimeout(scrollToBottom, 300);
+    document.querySelectorAll('.quick-question').forEach((button) => {
+        button.addEventListener('click', () => {
+            if (isSending) return;
+            input.value = button.dataset.question || '';
+            input.focus();
+            input.dispatchEvent(new Event('input'));
+        });
     });
 
-    // ✅ NEW: Test connection on page load
-    console.log('Chat system ready!');
-    console.log('CSRF Token available:', getCSRFToken() ? 'Yes' : 'No');
-});
-
-// Page visibility handling
-document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'visible') {
-        const messageInput = document.getElementById('messageInput');
-        if (messageInput) {
-            messageInput.focus();
-        }
-    }
+    scrollToLatest();
 });

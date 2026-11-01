@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from django.utils import timezone
 from .models import Appointment
 from .forms import AppointmentForm
-from users.models import Patient
+from users.models import Doctor, Patient
 
 # ✅ NEW: Helper function to check appointment conflicts
 def check_appointment_conflict(provider, appointment_date, appointment_time, exclude_id=None):
@@ -50,15 +51,25 @@ def book_appointment(request):
                     return render(request, 'appointments/book.html', {'form': form})
             
             # ✅ NEW: Check for appointment conflicts
-            if check_appointment_conflict(appointment.doctor, appointment.appointment_date, appointment.appointment_time):
-                messages.error(
-                    request, 
-                    'This time slot is already booked. Please choose another time or provider.'
-                )
+            try:
+                with transaction.atomic():
+                    provider = Doctor.objects.select_for_update().get(
+                        pk=appointment.doctor_id, user__user_type='staff'
+                    )
+                    if check_appointment_conflict(
+                        provider, appointment.appointment_date, appointment.appointment_time
+                    ):
+                        messages.error(
+                            request,
+                            'This time slot is already booked. Please choose another time or provider.'
+                        )
+                        return render(request, 'appointments/book.html', {'form': form})
+                    appointment.doctor = provider
+                    appointment.save()
+            except Doctor.DoesNotExist:
+                form.add_error('doctor', 'That provider is no longer available.')
                 return render(request, 'appointments/book.html', {'form': form})
             
-            # All validations passed - save the appointment
-            appointment.save()
             messages.success(request, 'Appointment booked successfully!')
             return redirect('appointments:success', appointment_id=appointment.id)
     else:

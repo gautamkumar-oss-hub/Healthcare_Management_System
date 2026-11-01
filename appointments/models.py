@@ -11,7 +11,7 @@ class Appointment(models.Model):
     ]
     
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, verbose_name="provider")
     appointment_date = models.DateField()
     appointment_time = models.TimeField()
     reason = models.TextField()
