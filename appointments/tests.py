@@ -165,6 +165,61 @@ class AppointmentValidationTests(TestCase):
         self.assertEqual(appointment.notes, 'Appointment confirmed by staff')
         print("✅ Test 5 passed: Staff can update status")
 
+    def test_patient_can_cancel_own_pending_appointment(self):
+        appointment = Appointment.objects.create(
+            patient=self.patient,
+            doctor=self.doctor,
+            appointment_date=timezone.localdate() + timedelta(days=1),
+            appointment_time=time(10, 0),
+            reason='Test appointment',
+        )
+        self.client.login(username='testpatient', password='testpass123')
+
+        response = self.client.post(f'/appointments/cancel/{appointment.pk}/')
+
+        appointment.refresh_from_db()
+        self.assertRedirects(response, '/appointments/my/')
+        self.assertEqual(appointment.status, 'cancelled')
+
+    def test_patient_cannot_cancel_another_patients_appointment(self):
+        other_user = User.objects.create_user(
+            username='otherpatient', password='testpass123', user_type='patient'
+        )
+        other_patient = Patient.objects.create(user=other_user)
+        appointment = Appointment.objects.create(
+            patient=other_patient,
+            doctor=self.doctor,
+            appointment_date=timezone.localdate() + timedelta(days=1),
+            appointment_time=time(10, 0),
+            reason='Private appointment',
+        )
+        self.client.login(username='testpatient', password='testpass123')
+
+        response = self.client.post(f'/appointments/cancel/{appointment.pk}/')
+
+        appointment.refresh_from_db()
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(appointment.status, 'pending')
+
+    def test_staff_cannot_set_appointment_back_to_pending(self):
+        appointment = Appointment.objects.create(
+            patient=self.patient,
+            doctor=self.doctor,
+            appointment_date=timezone.localdate() + timedelta(days=1),
+            appointment_time=time(10, 0),
+            reason='Test appointment',
+        )
+        self.client.login(username='testprovider', password='testpass123')
+
+        response = self.client.post(f'/appointments/update/{appointment.pk}/', {
+            'status': 'pending',
+            'notes': '',
+        })
+
+        appointment.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(appointment.status, 'pending')
+
 
 class UserRegistrationTests(TestCase):
     """Test user registration"""

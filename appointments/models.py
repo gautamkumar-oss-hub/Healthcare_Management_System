@@ -25,3 +25,13 @@ class Appointment(models.Model):
     
     def __str__(self):
         return f"{self.patient} with {self.doctor} on {self.appointment_date} at {self.appointment_time}"
+
+    def can_transition_to(self, new_status):
+        """Apply the same staff status rules from the UI and assistant tools."""
+        if new_status not in {'confirmed', 'completed', 'cancelled'}:
+            return False
+        if self.status == 'cancelled' and new_status == 'confirmed':
+            return False
+        if self.status == 'completed' and new_status == 'cancelled':
+            return False
+        return True

@@ -13,13 +13,13 @@
                     <!-- Appointment Info -->
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Patient:</strong> {{ appointment.patient }}</p>
+                            <p><strong>Patient:</strong> {{ appointment.patient.user.get_full_name|default:appointment.patient.user.username }}</p>
                             <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
-                            <p><strong>Current Status:</strong> 
-                                <span class="badge bg-warning">{{ appointment.get_status_display }}</span>
+                            <p><strong>Current Status:</strong>
+                                <span class="badge {% if appointment.status == 'confirmed' %}bg-success{% elif appointment.status == 'pending' %}bg-warning text-dark{% elif appointment.status == 'completed' %}bg-info text-dark{% else %}bg-secondary{% endif %}">{{ appointment.get_status_display }}</span>
                             </p>
                         </div>
                     </div>
@@ -40,25 +40,16 @@
                                 <div class="mb-3">
                                     <label class="form-label">New Status</label>
                                     <select name="status" class="form-select" required>
-                                        <option value="pending" {% if appointment.status == 'pending' %}selected{% endif %}>
-                                            📅 Pending
-                                        </option>
-                                        <option value="confirmed" {% if appointment.status == 'confirmed' %}selected{% endif %}>
-                                            ✅ Confirmed
-                                        </option>
-                                        <option value="completed" {% if appointment.status == 'completed' %}selected{% endif %}>
-                                            ✔️ Completed
-                                        </option>
-                                        <option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>
-                                            ❌ Cancelled
-                                        </option>
+                                        <option value="confirmed" {% if appointment.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                        <option value="completed" {% if appointment.status == 'completed' %}selected{% endif %}>Completed</option>
+                                        <option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Staff Notes</label>
-                                    <textarea name="notes" class="form-control" rows="4" 
+                                    <textarea name="notes" class="form-control" rows="4" maxlength="5000"
                                               placeholder="Add notes about this appointment...">{{ appointment.notes }}</textarea>
                                 </div>
                             </div>

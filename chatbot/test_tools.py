@@ -49,8 +49,11 @@ class ChatToolAuthorizationTests(TestCase):
         self.assertEqual(len(STAFF_TOOLS), 8)
 
     def test_patient_appointment_list_is_scoped_to_patient(self):
+        self.own_appointment.notes = "Internal staff note"
+        self.own_appointment.save(update_fields=["notes"])
         result = _execute("list_my_appointments", {}, self.patient_user)
         self.assertEqual([item["id"] for item in result], [self.own_appointment.pk])
+        self.assertNotIn("staff_notes", result[0])
 
     def test_patient_cannot_cancel_another_patients_appointment(self):
         result = _execute(
@@ -70,6 +73,7 @@ class ChatToolAuthorizationTests(TestCase):
         )
         self.assertEqual(result["id"], self.other_appointment.pk)
         self.assertEqual(result["patient"]["id"], self.other_patient.pk)
+        self.assertIn("staff_notes", result)
 
     def test_guest_cannot_execute_account_tools(self):
         result = _execute("list_my_appointments", {}, AnonymousUser())
