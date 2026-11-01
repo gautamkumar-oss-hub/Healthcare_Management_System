@@ -31,7 +31,7 @@ class AppointmentValidationTests(TestCase):
             username='testdoctor',
             password='testpass123',
             email='doctor@test.com',
-            user_type='doctor',
+            user_type='staff',
             first_name='Dr.',
             last_name='Smith'
         )
@@ -140,8 +140,8 @@ class AppointmentValidationTests(TestCase):
         self.assertContains(response, 'Dr. Smith')
         print("✅ Test 4 passed: Patient can view appointments")
     
-    def test_doctor_can_update_appointment_status(self):
-        """Test that doctors can update appointment status"""
+    def test_staff_can_update_appointment_status(self):
+        """Test that staff can update appointment status"""
         tomorrow = timezone.now().date() + timedelta(days=1)
         
         appointment = Appointment.objects.create(
@@ -163,7 +163,7 @@ class AppointmentValidationTests(TestCase):
         appointment.refresh_from_db()
         self.assertEqual(appointment.status, 'confirmed')
         self.assertEqual(appointment.notes, 'Appointment confirmed by doctor')
-        print("✅ Test 5 passed: Doctor can update status")
+        print("✅ Test 5 passed: Staff can update status")
 
 
 class UserRegistrationTests(TestCase):
@@ -192,13 +192,13 @@ class UserRegistrationTests(TestCase):
             self.assertTrue(hasattr(user, 'patient'))
             print("✅ Test 6 passed: Patient registration works")
     
-    def test_doctor_registration(self):
-        """Test doctor can register"""
-        response = self.client.post('/users/register/doctor/', {
-            'username': 'newdoctor',
-            'email': 'newdoctor@test.com',
+    def test_staff_registration(self):
+        """Test staff can register"""
+        response = self.client.post('/users/register/staff/', {
+            'username': 'newstaff',
+            'email': 'newstaff@test.com',
             'first_name': 'New',
-            'last_name': 'Doctor',
+            'last_name': 'Staff',
             'phone': '1234567890',
             'specialization': 'Cardiology',
             'license_number': 'LIC123456',
@@ -209,15 +209,15 @@ class UserRegistrationTests(TestCase):
         })
         
         # Check user was created
-        user_exists = User.objects.filter(username='newdoctor').exists()
+        user_exists = User.objects.filter(username='newstaff').exists()
         self.assertTrue(user_exists)
         
-        # Check doctor profile was created
+        # Provider profile remains available for appointment selection.
         if user_exists:
-            user = User.objects.get(username='newdoctor')
-            self.assertEqual(user.user_type, 'doctor')
+            user = User.objects.get(username='newstaff')
+            self.assertEqual(user.user_type, 'staff')
             self.assertTrue(hasattr(user, 'doctor'))
-            print("✅ Test 7 passed: Doctor registration works")
+            print("✅ Test 7 passed: Staff registration works")
 
 
 class SecurityTests(TestCase):
@@ -255,7 +255,7 @@ class ModelTests(TestCase):
     def test_appointment_string_representation(self):
         """Test appointment __str__ method"""
         user1 = User.objects.create_user(username='patient1', user_type='patient')
-        user2 = User.objects.create_user(username='doctor1', user_type='doctor')
+        user2 = User.objects.create_user(username='staff1', user_type='staff')
         
         patient = Patient.objects.create(user=user1)
         doctor = Doctor.objects.create(

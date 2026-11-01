@@ -66,10 +66,12 @@ def send_message(request):
             )
             
             # Get conversation history (last 10 messages for performance)
-            recent_messages = conversation.messages.all()[:10]
+            recent_messages = list(
+                conversation.messages.exclude(pk=user_msg.pk).order_by('-created_at')[:10]
+            )[::-1]
         
         # Get AI response (works for both logged-in and guest users)
-        ai_response = get_gemini_response(user_message, recent_messages)
+        ai_response = get_gemini_response(user_message, recent_messages, request.user)
         
         # Save AI response only for logged-in users
         if request.user.is_authenticated:

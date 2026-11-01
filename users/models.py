@@ -5,7 +5,7 @@ class User(AbstractUser):
     """Custom User model"""
     USER_TYPE_CHOICES = [
         ('patient', 'Patient'),
-        ('doctor', 'Doctor'),
+        ('staff', 'Staff'),
     ]
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='patient')
     phone = models.CharField(max_length=15, blank=True)
@@ -24,7 +24,7 @@ class Patient(models.Model):
         return f"Patient: {self.user.get_full_name() or self.user.username}"
 
 class Doctor(models.Model):
-    """Doctor profile"""
+    """Provider profile retained for appointment selection and scheduling."""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     specialization = models.CharField(max_length=100)
     license_number = models.CharField(max_length=50, unique=True)
