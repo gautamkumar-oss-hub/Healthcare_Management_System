@@ -85,11 +85,9 @@ def my_appointments(request):
         appointments = Appointment.objects.filter(
             patient=request.user.patient
         ).select_related('doctor__user')
-    elif request.user.user_type == 'staff' and hasattr(request.user, 'doctor'):
+    elif request.user.user_type == 'staff':
         # ✅ IMPROVED: Use select_related to avoid N+1 queries
-        appointments = Appointment.objects.filter(
-            doctor=request.user.doctor
-        ).select_related('patient__user')
+        appointments = Appointment.objects.select_related('doctor__user', 'patient__user')
     else:
         appointments = []
     
@@ -100,18 +98,14 @@ def appointment_success(request, appointment_id):
     """Appointment booking success page"""
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
-    # A patient may view their own appointment; staff may view only their assigned one.
+    # Patients can view their own appointment; hospital staff can view hospital appointments.
     owns_appointment = (
         request.user.user_type == 'patient'
         and hasattr(request.user, 'patient')
         and appointment.patient_id == request.user.patient.id
-    ) or (
-        request.user.user_type == 'staff'
-        and hasattr(request.user, 'doctor')
-        and appointment.doctor_id == request.user.doctor.id
-    )
+    ) or request.user.user_type == 'staff'
     if not owns_appointment:
-        messages.error(request, 'You can only view appointments assigned to your account.')
+        messages.error(request, 'You can only view appointments associated with your account.')
         return redirect('appointments:my_appointments')
     
     return render(request, 'appointments/success.html', {'appointment': appointment})
@@ -121,14 +115,9 @@ def update_appointment(request, appointment_id):
     """Staff can update appointment status with validation."""
     appointment = get_object_or_404(Appointment, id=appointment_id)
     
-    # Only staff accounts linked to an appointment profile can update appointments.
-    if request.user.user_type != 'staff' or not hasattr(request.user, 'doctor'):
+    # Only hospital staff can update appointments.
+    if request.user.user_type != 'staff':
         messages.error(request, 'Only staff can update appointments.')
-        return redirect('appointments:my_appointments')
-    
-    # Only the assigned staff provider can update.
-    if appointment.doctor != request.user.doctor:
-        messages.error(request, 'You can only update your own appointments.')
         return redirect('appointments:my_appointments')
     
     if request.method == 'POST':

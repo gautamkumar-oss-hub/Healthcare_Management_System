@@ -26,11 +26,11 @@ class AppointmentValidationTests(TestCase):
             date_of_birth=date(1990, 1, 1)
         )
         
-        # Create doctor
+        # Create a staff-linked provider record for appointment selection.
         self.doctor_user = User.objects.create_user(
-            username='testdoctor',
+            username='testprovider',
             password='testpass123',
-            email='doctor@test.com',
+            email='provider@test.com',
             user_type='staff',
             first_name='Dr.',
             last_name='Smith'
@@ -153,16 +153,16 @@ class AppointmentValidationTests(TestCase):
             status='pending'
         )
         
-        self.client.login(username='testdoctor', password='testpass123')
+        self.client.login(username='testprovider', password='testpass123')
         
         response = self.client.post(f'/appointments/update/{appointment.id}/', {
             'status': 'confirmed',
-            'notes': 'Appointment confirmed by doctor'
+            'notes': 'Appointment confirmed by staff'
         })
         
         appointment.refresh_from_db()
         self.assertEqual(appointment.status, 'confirmed')
-        self.assertEqual(appointment.notes, 'Appointment confirmed by doctor')
+        self.assertEqual(appointment.notes, 'Appointment confirmed by staff')
         print("✅ Test 5 passed: Staff can update status")
 
 
@@ -193,17 +193,13 @@ class UserRegistrationTests(TestCase):
             print("✅ Test 6 passed: Patient registration works")
     
     def test_staff_registration(self):
-        """Test staff can register"""
+        """Staff registration creates an account request, not a provider record."""
         response = self.client.post('/users/register/staff/', {
             'username': 'newstaff',
             'email': 'newstaff@test.com',
             'first_name': 'New',
             'last_name': 'Staff',
             'phone': '1234567890',
-            'specialization': 'Cardiology',
-            'license_number': 'LIC123456',
-            'experience_years': 10,
-            'consultation_fee': 150.00,
             'password1': 'ComplexPass123!',
             'password2': 'ComplexPass123!',
         })
@@ -212,14 +208,15 @@ class UserRegistrationTests(TestCase):
         user_exists = User.objects.filter(username='newstaff').exists()
         self.assertTrue(user_exists)
         
-        # Provider profile remains available for appointment selection.
+        # Staff must be approved and do not receive provider profiles.
         if user_exists:
             user = User.objects.get(username='newstaff')
             self.assertEqual(user.user_type, 'staff')
-            self.assertTrue(hasattr(user, 'doctor'))
+            self.assertFalse(user.is_active)
+            self.assertFalse(hasattr(user, 'doctor'))
             print("✅ Test 7 passed: Staff registration works")
 
-    def test_staff_without_appointment_profile_is_pending_approval(self):
+    def test_staff_registration_is_pending_approval_without_provider_profile(self):
         response = self.client.post('/users/register/staff/', {
             'username': 'generalstaff',
             'email': 'generalstaff@test.com',

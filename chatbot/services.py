@@ -49,11 +49,11 @@ PATIENT_TOOLS = [
 ]
 
 STAFF_TOOLS = [
-    {"name": "list_my_appointments", "description": "List appointments assigned to the authenticated staff provider.", "parameters": _schema()},
-    {"name": "get_appointment_details", "description": "Get an appointment assigned to this staff provider.", "parameters": _schema({"appointment_id": {"type": "INTEGER"}}, ["appointment_id"])},
+    {"name": "list_hospital_appointments", "description": "List recent hospital appointments available to authenticated staff.", "parameters": _schema()},
+    {"name": "get_appointment_details", "description": "Get a hospital appointment by its ID.", "parameters": _schema({"appointment_id": {"type": "INTEGER"}}, ["appointment_id"])},
     {
         "name": "update_appointment_status",
-        "description": "Update status of an appointment assigned to this staff provider.",
+        "description": "Update the status of a hospital appointment.",
         "parameters": _schema(
             {
                 "appointment_id": {"type": "INTEGER"},
@@ -64,15 +64,15 @@ STAFF_TOOLS = [
     },
     {
         "name": "add_appointment_notes",
-        "description": "Add notes to an appointment assigned to this staff provider.",
+        "description": "Add staff notes to a hospital appointment.",
         "parameters": _schema(
             {"appointment_id": {"type": "INTEGER"}, "notes": {"type": "STRING"}},
             ["appointment_id", "notes"],
         ),
     },
-    {"name": "get_my_provider_profile", "description": "Get the authenticated staff member's appointment profile.", "parameters": _schema()},
-    {"name": "list_my_patients", "description": "List patients with appointments assigned to this staff provider.", "parameters": _schema()},
-    {"name": "get_my_appointment_counts", "description": "Count assigned appointments by status.", "parameters": _schema()},
+    {"name": "get_my_profile", "description": "Get the authenticated staff member's account profile.", "parameters": _schema()},
+    {"name": "list_patients", "description": "List registered hospital patients by name.", "parameters": _schema()},
+    {"name": "get_appointment_counts", "description": "Count hospital appointments by status.", "parameters": _schema()},
     {"name": "list_providers", "description": "List providers available for appointment selection.", "parameters": _schema()},
 ]
 
@@ -118,12 +118,13 @@ def _execute(name, args, user):
     """Run a fixed tool using identity and ownership from the authenticated user."""
     if not user or not user.is_authenticated:
         return {"error": "Authentication is required for account tools."}
+    if not user.is_active:
+        return {"error": "This account is not active."}
 
     role = user.user_type
     if role not in {"patient", "staff"}:
         return {"error": "This account role does not have chatbot tools."}
     patient = _related_profile(user, "patient", Patient) if role == "patient" else None
-    provider = _related_profile(user, "doctor", Doctor) if role == "staff" else None
     if role == "patient" and patient is None:
         return {"error": "Patient profile unavailable."}
 
@@ -137,19 +138,26 @@ def _execute(name, args, user):
             "address": patient.address,
             "emergency_contact": patient.emergency_contact,
         }
-    if name == "get_my_provider_profile" and role == "staff" and not args:
-        if provider is None:
-            return {"error": "No appointment profile is linked to this staff account."}
-        return _provider_data(provider)
+    if name == "get_my_profile" and role == "staff" and not args:
+        return {
+            "name": user.get_full_name() or user.username,
+            "email": user.email,
+            "phone": user.phone,
+            "user_type": user.user_type,
+        }
     if name == "list_providers" and not args:
         providers = Doctor.objects.select_related("user").filter(
             user__user_type="staff", user__is_active=True
         )
         return [_provider_data(item) for item in providers.order_by("user__last_name", "user__first_name")[:50]]
-    if name == "list_my_appointments" and not args:
+    if name == "list_my_appointments" and role == "patient" and not args:
         appointments = Appointment.objects.select_related("doctor__user", "patient__user")
-        appointments = appointments.filter(patient=patient) if role == "patient" else appointments.filter(doctor=provider)
-        return [_appointment_data(item, include_patient=role == "staff") for item in appointments[:25]]
+        appointments = appointments.filter(patient=patient)
+        return [_appointment_data(item) for item in appointments[:25]]
+    if name == "list_hospital_appointments" and role == "staff" and not args:
+        appointments = Appointment.objects.select_related("doctor__user", "patient__user")
+        appointments = appointments.order_by("-appointment_date", "-appointment_time")
+        return [_appointment_data(item, include_patient=True) for item in appointments[:50]]
 
     if name == "book_appointment" and role == "patient":
         expected = {"provider_id", "appointment_date", "appointment_time", "reason"}
@@ -233,10 +241,10 @@ def _execute(name, args, user):
         if type(appointment_id) is not int:
             return {"error": "Invalid appointment details."}
         appointment = Appointment.objects.select_related("doctor__user", "patient__user").filter(
-            pk=appointment_id, doctor=provider
+            pk=appointment_id
         ).first()
         if not appointment:
-            return {"error": "Appointment not found for this staff provider."}
+            return {"error": "Hospital appointment not found."}
         if name == "get_appointment_details" and set(args) == {"appointment_id"}:
             return _appointment_data(appointment, include_patient=True)
         if name == "update_appointment_status" and set(args) == {"appointment_id", "status"}:
@@ -258,12 +266,11 @@ def _execute(name, args, user):
             appointment.save(update_fields=["notes", "updated_at"])
             return {"success": True, "appointment_id": appointment.pk}
 
-    if name == "list_my_patients" and role == "staff" and not args:
-        patients = Patient.objects.filter(appointment__doctor=provider).select_related("user")
-        patients = patients.distinct().order_by("user__last_name", "user__first_name")[:50]
+    if name == "list_patients" and role == "staff" and not args:
+        patients = Patient.objects.select_related("user").order_by("user__last_name", "user__first_name")[:50]
         return [{"id": item.pk, "name": item.user.get_full_name() or item.user.username} for item in patients]
-    if name == "get_my_appointment_counts" and role == "staff" and not args:
-        counts = Appointment.objects.filter(doctor=provider).values("status").annotate(count=Count("id"))
+    if name == "get_appointment_counts" and role == "staff" and not args:
+        counts = Appointment.objects.values("status").annotate(count=Count("id"))
         return {row["status"]: row["count"] for row in counts}
     return {"error": "Tool is unavailable for this account or arguments were invalid."}
 

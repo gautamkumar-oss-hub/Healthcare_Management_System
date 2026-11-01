@@ -16,9 +16,6 @@ def chat_page(request):
     """Render the public chat page and the signed-in user's recent history."""
     context = {"messages": []}
     if request.user.is_authenticated:
-        context["has_appointment_profile"] = (
-            request.user.user_type == "staff" and hasattr(request.user, "doctor")
-        )
         conversation = Conversation.objects.filter(user=request.user).order_by("-updated_at").first()
         if conversation:
             context["messages"] = list(
